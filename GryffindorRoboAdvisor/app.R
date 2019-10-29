@@ -1,6 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
+library(leaflet)
+
 
 ui <- dashboardPage(
   
@@ -55,17 +57,56 @@ ui <- dashboardPage(
                        )
                 )
               ),
-
+      
+      
+      # Second Tab Content
       tabItem(tabName = "Map", actionButton("button21", "Previous"),
-              actionButton("button22", "Next")),
-      tabItem(tabName = "Portfolio")
+              actionButton("button22", "Next"),
+              
+              
+              leafletOutput("mymap"),
+              p()
+              
+              
+              
+              ),
+      
+      
+      
+      # Third Tab Content
+      tabItem(tabName = "Portfolio", actionButton("button32", "Previous")
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              )
       )
     )
   )
 
 
+
 server <- function(input, output, session) {
   
+  #Teststuff for the map
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$Stamen.TonerLite,
+                       options = providerTileOptions(noWrap = TRUE)
+      )%>% 
+      setView(lng = 0, lat = 0, zoom = 1.2)
+    }
+  )
+  
+  
+  #Buttons
   observeEvent(
     input$button, {
       newtab <- switch(input$tabs, "risk" = "Map", "Map" = "risk")
@@ -84,9 +125,14 @@ server <- function(input, output, session) {
       updateTabItems(session, "tabs", newtab)
     }
   )
+  observeEvent(
+      input$button32, {
+        newtab <- switch(input$tabs, "Map" = "Portfolio", "Portfolio" = "Map")
+        updateTabItems(session, "tabs", newtab)
+      }
+  )
 
    risks <- c(0.007, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
-   
    
    output$distPlot <- renderPlot({
    returns = rnorm(1:1000, mean = input$capital, 
