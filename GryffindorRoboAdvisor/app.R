@@ -96,14 +96,12 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   
   #Teststuff for the map
+  
   output$mymap <- renderLeaflet({
-    leaflet() %>%
-      addProviderTiles(providers$Stamen.TonerLite,
-                       options = providerTileOptions(noWrap = TRUE)
-      )%>% 
-      setView(lng = 0, lat = 0, zoom = 1.2)
-    }
-  )
+    leaflet() %>% setView(lng = 0, lat = 0, zoom = 1.2) %>% addTiles()
+
+  })
+  
   
   
   #Buttons
