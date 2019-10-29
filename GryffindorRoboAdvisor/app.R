@@ -47,7 +47,7 @@ ui <- dashboardPage(
                        )
                 )
               ),
-      tabItem(tabName = "Map"),
+      tabItem(tabName = "Map", actionButton("button2", "Continue")),
       tabItem(tabName = "Portfolio")
     
       
@@ -57,13 +57,28 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   
-  # risks <- read.csv("risks.csv", sep = ';')
-  # var <- reactive(input$rpref)
-  # risks <- risks[risks$Risk == var,][2]
+  observeEvent(
+    input$button, {
+      
+      # print(bestRecommendations())      
+      # message(bestRecommendations())
+      
+      newtab <- switch(input$tabs, "risk" = "Map", "Map" = "risk")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+  observeEvent(
+    input$button2, {
+      newtab <- switch(input$tabs, "Map" = "Portfolio", "Portfolio" = "Map")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+
+   risks <- c(0.007, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
 
   output$distPlot <- renderPlot({
     
-    returns = rnorm(1:1000, mean = input$capital, sd = 7)
+    returns = rnorm(1:1000, mean = input$capital, sd = input$capital*risks[input$rpref]*sqrt(input$horizon))
     
     ggplot() + aes(returns) + geom_histogram() + geom_vline(aes(xintercept= input$capital),
                                                    color="red", linetype="solid", size=2) + 
