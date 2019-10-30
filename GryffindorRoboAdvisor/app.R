@@ -98,7 +98,24 @@ server <- function(input, output, session) {
   #Teststuff for the map
   
   output$mymap <- renderLeaflet({
-    leaflet() %>% setView(lng = 0, lat = 0, zoom = 1.2) %>% addTiles()
+    leaflet() %>% setView(lng = 50, lat = 50, zoom = 1.2) %>% addTiles() %>%
+      
+      addPolygons(
+        lng = asialong,
+        lat = asialat,
+        fillColor = "transparent",
+        weight = 2,
+        opacity = 1,
+        color = "black",
+        fillOpacity = 0.7,
+        highlight = highlightOptions(
+          weight = 5,
+          color = "#666",
+          dashArray = "",
+          fillOpacity = 0.7,
+          bringToFront = TRUE
+        )
+      )
 
   })
   
