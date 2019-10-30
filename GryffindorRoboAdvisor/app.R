@@ -4,6 +4,14 @@ library(ggplot2)
 library(leaflet)
 
 
+asia <- read.csv2("asia.csv")
+asialong <- asia[,1]
+asialat <- asia[,2]
+asialat <- asialat[1:(length(asialat)-1000)]
+asialong <- asialong[1:(length(asialong)-1000)]
+
+
+
 ui <- dashboardPage(
   
   dashboardHeader(title = "Greetings to Gryffindor RoboAdvisor page!", 
@@ -64,8 +72,7 @@ ui <- dashboardPage(
               actionButton("button22", "Next"),
               
               
-              leafletOutput("mymap"),
-              p()
+              leafletOutput("mymap")
               
               
               
@@ -95,13 +102,32 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   
-  #Teststuff for the map
+  #Teststuff for the map 
+
   
   output$mymap <- renderLeaflet({
-    leaflet() %>% setView(lng = 0, lat = 0, zoom = 1.2) %>% addTiles()
+    leaflet() %>% setView(lng = 0, lat = 0, zoom = 2) %>% addTiles() %>%
+      
+    addPolygons(
+      lng = asialong,
+      lat = asialat,
+      fillColor = "transparent",
+      weight = 2,
+      opacity = 1,
+      color = "black",
+      dashArray = "3",
+      fillOpacity = 0.7,
+      highlight = highlightOptions(
+        weight = 5,
+        color = "#666",
+        dashArray = "",
+        fillOpacity = 0.7,
+        bringToFront = TRUE)
+    )
 
   })
   
+
   
   
   #Buttons
