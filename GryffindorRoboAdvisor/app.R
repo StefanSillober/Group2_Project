@@ -106,6 +106,7 @@ server <- function(input, output, session) {
 
   
   output$mymap <- renderLeaflet({
+
     leaflet() %>% setView(lng = 0, lat = 0, zoom = 2) %>% addTiles() %>%
       
     addPolygons(
