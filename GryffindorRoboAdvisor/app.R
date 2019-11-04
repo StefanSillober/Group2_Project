@@ -2,15 +2,12 @@ library(shiny)
 library(shinydashboard)
 library(ggplot2)
 library(leaflet)
-
-
-asia <- read.csv2("asia.csv")
-asialong <- asia[,1]
-asialat <- asia[,2]
-asialat <- asialat[1:(length(asialat)-1000)]
-asialong <- asialong[1:(length(asialong)-1000)]
-
-
+library(RJSONIO)
+library(rjson)
+library(leaflet)
+library(githubinstall)
+library(rCharts)
+library(readr)
 
 ui <- dashboardPage(
   
@@ -68,14 +65,9 @@ ui <- dashboardPage(
       
       
       # Second Tab Content
-      tabItem(tabName = "Map", actionButton("button21", "Previous"),
-              actionButton("button22", "Next"),
-              
+      tabItem(tabName = "Map", actionButton("button21", "Next"),
               
               leafletOutput("mymap")
-              
-              
-              
               ),
       
       
@@ -99,36 +91,25 @@ ui <- dashboardPage(
   )
 
 
-
 server <- function(input, output, session) {
   
   #Teststuff for the map 
-
   
+  json <- read_file("continents.txt")
   output$mymap <- renderLeaflet({
-
-    leaflet() %>% setView(lng = 0, lat = 0, zoom = 2) %>% addTiles() %>%
-      
-    addPolygons(
-      lng = asialong,
-      lat = asialat,
-      fillColor = "transparent",
-      weight = 2,
-      opacity = 1,
-      color = "black",
-      dashArray = "3",
-      fillOpacity = 0.7,
-      highlight = highlightOptions(
-        weight = 5,
-        color = "#666",
-        dashArray = "",
-        fillOpacity = 0.7,
-        bringToFront = TRUE)
-    )
-
+    
+    leaflet() %>%
+      setView(lng = 0, lat = 0, zoom = 2) %>%
+      addTiles() %>%
+      addTiles(options = tileOptions(useCache = FALSE)) %>%
+      addGeoJSON(geojson = json,
+                 options = highlightOptions(
+                   weight = 5,
+                   color = "#666",
+                   dashArray = "",
+                   fillOpacity = 0.7,
+                   bringToFront = TRUE))
   })
-  
-
   
   
   #Buttons
