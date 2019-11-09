@@ -89,8 +89,9 @@ ui <- dashboardPage(
                 column(width = 8,
                        mainPanel(
                          tabsetPanel(
-                           tabPanel("Draws",plotOutput('distPlot')),
-                           tabPanel("Distribution",plotOutput('distPlotFinish'))
+                           tabPanel("Distribution",plotOutput('distPlotFinish')),
+                           tabPanel("Draws",plotOutput('distPlot')
+                           )
                          )
                        )
                 )
@@ -104,8 +105,15 @@ ui <- dashboardPage(
       
       # Second Tab Content
       
+
+      #tabItem(tabName = "Map", actionButton("button21", "Next"),
+              
       tabItem(tabName = "Map",
-              leafletOutput("mymap")),
+            
+              leafletOutput("mymap"),
+              actionButton("button21", "Previous"),
+              actionButton("button22", "Next")
+              ),
 
       # Third Tab Content
       tabItem(tabName = "Portfolio", actionButton("button32", "Previous")
@@ -173,11 +181,11 @@ server <- function(input, output, session) {
   # dynamic start button label
   output$startbutton<-renderUI({
     if(sum(sim$data)==0){
-      lbl<-"Start"
+      lbl2<-"Start"
     }else{
-      lbl<-"Next Draw"
+      lbl2<-"Next Draw"
     }
-    actionButton("nextdraw",label=lbl)
+    actionButton("nextdraw",label=lbl2)
   })
   
   # Random draw function for individual draws
@@ -201,10 +209,37 @@ server <- function(input, output, session) {
     rand_draw()
   })
   
+  # Switch Tabs
+  observeEvent(
+    input$button, {
+      newtab <- switch(input$tabs, "risk" = "Map", "Map" = "risk")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+  observeEvent(
+    input$button21, {
+      newtab <- switch(input$tabs, "Map" = "risk", "risk" = "Map")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+  observeEvent(
+    input$button22, {
+      newtab <- switch(input$tabs, "Map" = "Portfolio", "Portfolio" = "Map")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+  observeEvent(
+    input$button32, {
+      newtab <- switch(input$tabs,  "Portfolio" = "Map", "Map" = "Portfolio")
+      updateTabItems(session, "tabs", newtab)
+    }
+  )
+  
+  
   
   ###
-  session<-reactiveValues()
-  session$timer<-reactiveTimer(Inf)
+  session <- reactiveValues()
+  session$timer <- reactiveTimer(Inf)
   
   observeEvent(input$play,{
     session$timer<-reactiveTimer(100)
@@ -271,32 +306,12 @@ server <- function(input, output, session) {
   
   
   
-  # Switch Tabs
-  observeEvent(
-    input$button, {
-      newtab <- switch(input$tabs, "risk" = "Map", "Map" = "risk")
-      updateTabItems(session, "tabs", newtab)
-    }
-  )
-  observeEvent(
-    input$button21, {
-      newtab <- switch(input$tabs, "Map" = "risk", "risk" = "Map")
-      updateTabItems(session, "tabs", newtab)
-    }
-  )
-  observeEvent(
-    input$button22, {
-      newtab <- switch(input$tabs, "Map" = "Portfolio", "Portfolio" = "Map")
-      updateTabItems(session, "tabs", newtab)
-    }
-  )
-   
-   
+
    
    
 }
 
 
 #shinyApp(ui, server)
-runApp(shinyApp(ui,server),launch.browser = TRUE)
+shinyApp(ui,server)
 
