@@ -1,10 +1,10 @@
 library(shiny)
+library(leaflet)
 library(shinydashboard)
 library(ggplot2)
 library(leaflet)
 library(RJSONIO)
 library(rjson)
-library(leaflet)
 library(githubinstall)
 library(rCharts)
 library(readr)
@@ -104,13 +104,8 @@ ui <- dashboardPage(
       
       # Second Tab Content
       
-      tabItem(tabName = "Map", actionButton("button21", "Next"),
-              
-      tabItem(tabName = "Map", actionButton("button21", "Previous"),
-              actionButton("button22", "Next"),
-            
-              leafletOutput("mymap")
-              ),
+      tabItem(tabName = "Map",
+              leafletOutput("mymap")),
 
       # Third Tab Content
       tabItem(tabName = "Portfolio", actionButton("button32", "Previous")
@@ -118,28 +113,40 @@ ui <- dashboardPage(
       )
     )
   )
-)
+
 
 
 server <- function(input, output, session) {
   
   #Teststuff for the map 
   
-  json <- read_file("continents.txt")
-  output$mymap <- renderLeaflet({
+  output$mymap <- renderLeaflet({geojson_read("countries.geojson", what = "sp") %>%
     
-    leaflet() %>%
-      setView(lng = 0, lat = 0, zoom = 2) %>%
-      addTiles() %>%
-      addTiles(options = tileOptions(useCache = FALSE)) %>%
-      addGeoJSON(geojson = json,
-                 options = highlightOptions(
-                   weight = 5,
-                   color = "#666",
-                   dashArray = "",
-                   fillOpacity = 0.7,
-                   bringToFront = TRUE))
+  leaflet() %>%
+      
+      setView(lng = 0, lat = 30, zoom = 2) %>%
+      
+      addProviderTiles(providers$Stamen.TonerLite,
+                       options = providerTileOptions(noWrap = TRUE)) %>%
+      
+    addPolygons(
+      weight = 1,
+      color = "blue",
+      dashArray = "3",
+      highlight = highlightOptions(
+        weight = 5,
+        color = "#666",
+        dashArray = "",
+        fillOpacity = 0.7,
+        bringToFront = TRUE),
+      
+      label = countries$ISO_A3,
+      labelOptions = labelOptions(
+        style = list("font-weight" = "normal", padding = "3px 8px"),
+        textsize = "15px",
+        direction = "auto"))
   })
+  
   
   ###---###---###---###---###---###---###---###---###---###---###---###---###---###
   # Histogram Simulation
