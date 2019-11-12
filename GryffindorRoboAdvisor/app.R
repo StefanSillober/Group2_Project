@@ -6,7 +6,6 @@ library(RJSONIO)
 library(rjson)
 library(githubinstall)
 library(rCharts)
-library(readr)
 library(shinythemes)
 library(devtools)
 #install_github("nik01010/dashboardthemes")
@@ -359,7 +358,15 @@ server <- function(input, output, session) {
                 textsize = "15px",
                 direction = "auto"))
     })
-
+    ###---###---###---###---###---###---###---###---###---###---###---###---###
+                                ##---Portfolio Creation---###
+    
+    Data <- read.csv("histstock.csv", header = TRUE, sep = ";",dec = ".")
+    
+    
+    
+    
+    
     
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
