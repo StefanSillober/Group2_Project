@@ -209,6 +209,7 @@ server <- function(input, output, session) {
     sim$resetindicator<-0   # used to change button labels
     sim$numb <- c()
     sim$data <- c()
+    sim$terminal_wealth <- c()
     diffusion <- c(0.01, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
     drift <- c(0.001,0.005,0.015,0.02, 0.03, 0.06, 0.1)
     draws <- 1000
@@ -310,19 +311,19 @@ server <- function(input, output, session) {
     
     ## main plot output Finish
     output$distPlotFinish <- renderPlot({
-        terminal_wealth <<- input$initial_wealth * exp((drift[input$rpref2]-(1/2)*(diffusion[input$rpref2])^2)*input$inv_horizon + diffusion[input$rpref2]*sqrt(input$inv_horizon)*rnorm(1:draws))
+        sim$terminal_wealth <- input$initial_wealth * exp((drift[input$rpref2]-(1/2)*(diffusion[input$rpref2])^2)*input$inv_horizon + diffusion[input$rpref2]*sqrt(input$inv_horizon)*rnorm(1:draws))
         
-        hist(terminal_wealth[terminal_wealth >= 0 & terminal_wealth < input$initial_wealth*5],
+        hist(sim$terminal_wealth[sim$terminal_wealth >= 0 & sim$terminal_wealth < input$initial_wealth*5],
              breaks = seq(from = 0, to = (input$initial_wealth*5), by = (input$initial_wealth*5)/30),
              xlim = c(0,input$initial_wealth*5),
              xlab = "Terminal Wealth", main = "Potential Evolvement of Wealth")
         grid()
         #abline(v = input$initial_wealth, col = "blue", lwd = 2)
         points(x = input$initial_wealth, y = 0, pch = 24, bg = "grey", cex = 2)
-        abline(v = mean(terminal_wealth), col = "blue", lwd = 2, lty = 2)
+        abline(v = mean(sim$terminal_wealth), col = "blue", lwd = 2, lty = 2)
         
-        abline(v = terminal_wealth[order(terminal_wealth)[draws*0.9]], col = "green", lwd = 2, lty = 2)
-        abline(v = terminal_wealth[order(terminal_wealth)[draws*0.1]], col = "red", lwd = 2, lty = 2)
+        abline(v = sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.9]], col = "green", lwd = 2, lty = 2)
+        abline(v = sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.1]], col = "red", lwd = 2, lty = 2)
         
         legend("topright", legend = c("90 out of 100 boundary", "10 out of 100 boundary", "Average Terminal Wealth", "Initial Investment"),
                col=c("green", "red", "blue", "grey"), lty = c(2, 2, 2, NA), pch = c(NA, NA, NA, 24), box.lty=0, cex = 1.2)
@@ -363,6 +364,7 @@ server <- function(input, output, session) {
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                                 ##---ValueBoxes---##
+    
     output$horizonBox <- renderValueBox({
         valueBox(
             paste0(input$inv_horizon, " years"), "Investment Horizon", icon = icon("hourglass-half"),
@@ -385,24 +387,45 @@ server <- function(input, output, session) {
     })
     
     output$avgBox <- renderValueBox({
-        valueBox(
-            paste0(round(mean(sim$data)), "$"), "Average Value", icon = icon("hand-holding-usd"),
-            color = "blue"
-        )
+        if (sum(sim$data) == 0) {
+            valueBox(
+                paste0(NA, "$"), "Average Value", icon = icon("hand-holding-usd"),
+                color = "blue"
+            )
+        } else {
+            valueBox(
+                paste0(round(mean(sim$data)), "$"), "Average Value", icon = icon("hand-holding-usd"),
+                color = "blue"
+            )
+        }
     })
-    
+
     output$uplimBox <- renderValueBox({
-        valueBox(
-            paste0(round(sim$data[order(sim$data)[length(sim$data)*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
-            color = "green"
-        )
+        if (sum(sim$data) == 0) {
+            valueBox(
+                paste0(NA, "$"), "90% Limit Profit", icon = icon("greater-than"),
+                color = "green"
+            )
+        } else {
+            valueBox(
+                paste0(round(sim$data[order(sim$data)[length(sim$data)*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
+                color = "green"
+            )
+        }
     })
-    
+
     output$lowlimBox <- renderValueBox({
-        valueBox(
-            paste0(round(sim$data[order(sim$data)[length(sim$data)*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
-            color = "red"
-        )
+        if (sum(sim$data) == 0) {
+            valueBox(
+                paste0(NA, "$"), "10% Limit Loss", icon = icon("less-than"),
+                color = "red"
+            )
+        } else {
+            valueBox(
+                paste0(round(sim$data[order(sim$data)[length(sim$data)*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
+                color = "red"
+            )
+        }
     })
     
     output$horizonBox1 <- renderValueBox({
@@ -428,21 +451,21 @@ server <- function(input, output, session) {
     
     output$avgBox1 <- renderValueBox({
         valueBox(
-            paste0(round(mean(terminal_wealth)), "$"), "Average Value", icon = icon("hand-holding-usd"),
+            paste0(round(mean(sim$terminal_wealth)), "$"), "Average Value", icon = icon("hand-holding-usd"),
             color = "blue"
         )
     })
     
     output$uplimBox1 <- renderValueBox({
         valueBox(
-            paste0(round(terminal_wealth[order(terminal_wealth)[draws*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
+            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
             color = "green"
         )
     })
     
     output$lowlimBox1 <- renderValueBox({
         valueBox(
-            paste0(round(terminal_wealth[order(terminal_wealth)[draws*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
+            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
             color = "red"
         )
     })
