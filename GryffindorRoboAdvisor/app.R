@@ -4,14 +4,15 @@ library(ggplot2)
 library(leaflet)
 library(RJSONIO)
 library(rjson)
-library(githubinstall)
 library(rCharts)
 library(readr)
 library(shinythemes)
 library(devtools)
+library(githubinstall)
 #install_github("nik01010/dashboardthemes")
 library(dashboardthemes)
 library(geojsonio)
+library(rgdal)
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
@@ -331,33 +332,75 @@ server <- function(input, output, session) {
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                             ##---Map---##
-    countries <- geojson_read("countries.geojson", what = "sp")
-    output$mymap <- renderLeaflet({geojson_read("countries.geojson", what = "sp") %>%
+
+    # ------------------------ 
+    # Read multiple shape files with standardized names
+    # all available countries are grouped by continent
+    
+    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "southamerica")
+    groups <- c("Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America")
+    colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
+    
+    for (i in region) {
+        filestest.i <- geojson_read(as.character(paste(i, "geo.json", sep = ".")), what = "sp")
+        assign(as.character(paste("files", i, sep = ".")), filestest.i)
+    }
+    
+    rm(filestest.i)
+    
+    # ------------------------
+    # initiate the map built with leaflet
+    
+    
+    
+    
             
-        leaflet() %>%
+        mymap <- leaflet() %>%
         
         setView(lng = 0, lat = 30, zoom = 2) %>%
         
         addProviderTiles(providers$Stamen.TonerLite,
-                         options = providerTileOptions(noWrap = TRUE)) %>%
+                         options = providerTileOptions(noWrap = TRUE))
+    #---------------------------------
+    # add multiple the several layers to combine the single polygons 
         
-        addPolygons(
-            weight = 1,
-            color = "blue",
-            dashArray = "3",
-            highlight = highlightOptions(
-                weight = 5,
-                color = "#666",
-                dashArray = "",
-                fillOpacity = 0.7,
-                bringToFront = TRUE),
+        for (reg.N in 1:length(region)) {
+            reg <- region[reg.N] # gives the region "code"
+            tmp <- get(paste("files", reg, sep = ".")) #gives the file name
             
-            label = countries$ISO_A3,
-            labelOptions = labelOptions(
-                style = list("font-weight" = "normal", padding = "3px 8px"),
-                textsize = "15px",
-                direction = "auto"))
-    })
+            mymap <- mymap %>%
+                addPolygons(data = tmp, 
+                            fillColor = colors[reg.N], 
+                            color = "#000000", 
+                            opacity = 1, 
+                            fillOpacity = 0.7,
+                            dashArray = "3",
+                            stroke = TRUE,
+                            weight = 1.5, 
+                            smoothFactor = 0.2,
+                            #highlight = highlightOptions(
+                                #weight = 1,
+                                #color = "#000000",
+                                #dashArray = "3",
+                                #fillOpacity = 0.8,
+                                #bringToFront = TRUE),
+                            
+                            label = paste(groups[reg.N]),
+                            group = paste(groups[reg.N])
+                ) 
+        }
+        
+        #---------------------------------
+        # set up layer controls
+        
+        mymap <- mymap %>%
+            addLayersControl(overlayGroups = groups,
+                             options = layersControlOptions(collapsed = FALSE))
+    
+    # ------------------------
+    # integrate the map into shiny
+    
+    output$mymap <- renderLeaflet({mymap})
 
     
     
@@ -512,5 +555,3 @@ server <- function(input, output, session) {
 
 runApp(shinyApp(ui,server),launch.browser = TRUE)
 #shinyApp(ui,server)
-
-
