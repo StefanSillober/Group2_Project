@@ -12,6 +12,7 @@ library(githubinstall)
 library(dashboardthemes)
 library(geojsonio)
 library(rgdal)
+library(matlib)
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
@@ -403,12 +404,121 @@ server <- function(input, output, session) {
     
     output$mymap <- renderLeaflet({mymap})
 
+    
+    ###---###---###---###---###---###---###---###---###---###---###---###---###
+                                ##---Portfolioevaluation functions
+    
+    
+    # Average return - takes one column as an input
+    averagereturn <- function(backtest){
+        portfoliologreturns <- data.frame()
+        for(r in 1:(nrow(backtest)-1)){
+            portfoliologreturns[r,1] <- log(backtest[r+1,1]/backtest[r,1])
+        }
+        averagereturn <- mean(portfoliologreturns[,1])*252
+        return(averagereturn)
+    }
+    
+    # Calculate max drawdown - takes one column as an input
+    maxdrawdown <- function(backtest){
+        trailingmaxdrawdown = data.frame()
+        for(r in 1:(nrow(backtest)-1)){
+            trailingmaxdrawdown[r,1] <- min(tail(backtest[,1],-r))/backtest[r,]-1
+        }
+        maxdrawdown <- min(trailingmaxdrawdown[,1])
+        return(maxdrawdown)
+    }
+    
+    # Calculate annual standard deviation
+    yearlystd <- function(backtest){
+        portfoliologreturns <- data.frame()
+        for(r in 1:(nrow(backtest)-1)){
+            portfoliologreturns[r,1] <- log(backtest[r+1,1]/backtest[r,1])
+        }
+        yearlystd <- sd(portfoliologreturns[,1])*sqrt(252)
+        return(yearlystd)
+    }
+    
+    # Calculate sharpe Ratio for maximization
+    sharpe <- function(expectedreturn, covmatrix, par){
+        
+        par <- as.matrix(par)
+        par <- rbind(par, 1-sum(par[,1]))
+        
+        #Calculate Portfolioreturn
+        pfreturn <- t(expectedreturn) %*% as.matrix(par)
+        #Calculate Portfoliostandardeviation
+        pfvar <- t(as.matrix(par)) %*% covmatrix %*% as.matrix(par)
+        #Calculate sharpe Ratio
+        sharperatio <- pfreturn/(pfvar^0.5)
+        
+        return(sharperatio)
+    }
+
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                                 ##---Portfolio Creation---###
     
-    Data <- read.csv("histstock.csv", header = TRUE, sep = ";",dec = ".")
+    
+    #read in static data
+    staticdata <- read.csv("histstock.csv", header = TRUE, sep = ";",dec = ",")
+    rownames(staticdata) <- staticdata[,1] 
+    staticdata <-  staticdata[,-1]
+    
+    #finaldata by user selection
+    finaldata <- staticdata
 
+    ### Sharperatio optimized pure Equity Portfolio
+    # Takes a dataframe with all indices as input
+    optimpf <- function(data){
+        #get past returns
+        returns <- data.frame()
+        for(c in 1:ncol(data)){
+            for(r in 1:nrow(data)-1){
+                returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+            }
+        }
+        #startingweights for optimisation -1 so that weights add up to 1
+        startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
+        expectedreturn <- as.matrix(rep(0,length.out=ncol(data)))
+        #return and covariances as matrixes
+        returnmatrix <- as.matrix(returns[,])
+        covmatrix <- cov(returnmatrix)
+        #expected returns for every stock
+        for(c in 1:ncol(returns)){
+            expectedreturn[c,1] <- mean(returns[,c])
+        }
+        #Find Optimal portfolioweights given the lower bound of 0 and the shareratio function defined above
+        optweights <- optim(par = as.vector(startingweights), fn = sharpe, 
+                            expectedreturn = expectedreturn, covmatrix = covmatrix , 
+                            control=list(fnscale=-1),lower = 0, method = "L-BFGS-B")
+        optweights <- as.matrix(optweights$par)
+        optweights <- rbind(optweights, 1-sum(optweights))
+        
+        #Indexed Portfolio
+        indexportfolio <- data.frame()
+        for(c in 1:ncol(data)){
+            indexportfolio[1,c] <- 100
+        }
+        for(c in 1:ncol(data)){
+            for(r in 1:nrow(returns)){
+                indexportfolio[r+1,c] <- indexportfolio[r,c]*(1+returns[r,c])
+            }
+        }
+        
+        colnames(indexportfolio) <- NULL
+        rownames(indexportfolio) <- NULL
+        
+        #Form Portfolio with the sharperatio optimal weights
+        portfolio <- data.frame()
+        for(r in 1:nrow(indexportfolio)){
+            portfolio[r,1] <- as.matrix(indexportfolio[r,]) %*% optweights
+        }
+        
+        
+        #Returns a Portfolio Indexed to 100
+        return(portfolio)
+    }
     
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
