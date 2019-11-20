@@ -338,6 +338,8 @@ server <- function(input, output, session) {
     # Read multiple shape files with standardized names
     # all available countries are grouped by continent
     
+    # RV <- reactiveValues(Clicks = list())
+    
     region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "southamerica")
     groups <- c("Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America")
     colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
@@ -351,12 +353,8 @@ server <- function(input, output, session) {
     
     # ------------------------
     # initiate the map built with leaflet
-    
-    
-    
-    
-            
-        mymap <- leaflet() %>%
+      
+        foundmap <- leaflet() %>%
         
         setView(lng = 0, lat = 30, zoom = 2) %>%
         
@@ -370,7 +368,7 @@ server <- function(input, output, session) {
             tmp <- get(paste("files", reg, sep = ".")) #gives the file name
             
             
-            mymap <- mymap %>%
+            foundmap <- foundmap %>%
                 addPolygons(data = tmp, 
                             fillColor = colors[reg.N], 
                             color = "#000000", 
@@ -380,12 +378,12 @@ server <- function(input, output, session) {
                             stroke = TRUE,
                             weight = 1.5, 
                             smoothFactor = 0.2,
-                            #highlight = highlightOptions(
-                                #weight = 1,
-                                #color = "#000000",
-                                #dashArray = "3",
-                                #fillOpacity = 0.8,
-                                #bringToFront = TRUE),
+                            # highlight = highlightOptions(
+                            #         weight = 1,
+                            #         color = "#000000",
+                            #         dashArray = "3",
+                            #         fillOpacity = 0.8,
+                            #         bringToFront = TRUE),
                             
                             label = paste(groups[reg.N]),
                             group = paste(groups[reg.N])
@@ -395,16 +393,25 @@ server <- function(input, output, session) {
         #---------------------------------
         # set up layer controls
         
-        mymap <- mymap %>%
+    foundmap <- foundmap %>%
             addLayersControl(overlayGroups = groups,
                              options = layersControlOptions(collapsed = FALSE))
     
     # ------------------------
     # integrate the map into shiny
     
-    output$mymap <- renderLeaflet({mymap})
-
+    output$mymap <- renderLeaflet({foundmap})
     
+    # ------------------------
+    # make the map interactive
+    
+    observeEvent(input$mymap_groups,{
+        
+        #selected_regions <<- input$mymap_groups
+        selected_regions <<- isolate({input$mymap_groups})
+        
+        })
+   
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                                 ##---Portfolioevaluation functions
     
