@@ -476,8 +476,8 @@ server <- function(input, output, session) {
     colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
     
     for (i in region) {
-        filestest.i <- geojson_read(as.character(paste(i, "geo.json", sep = ".")), what = "sp")
-        assign(as.character(paste("files", i, sep = ".")), filestest.i)
+      filestest.i <- geojson_read(as.character(paste(getwd(), "Map", paste(i, "geo.json", sep = "."), sep = "/")), what = "sp")
+      assign(as.character(paste("files", i, sep = ".")), filestest.i)
     }
     
     rm(filestest.i)
@@ -533,16 +533,7 @@ server <- function(input, output, session) {
     
     output$mymap <- renderLeaflet({foundmap})
     
-    # ------------------------
-    # make the map interactive
     
-    # observeEvent(input$mymap_groups,{
-    #     
-    #     #selected_regions <<- input$mymap_groups
-    #     selected_regions <<- isolate({input$mymap_groups})
-    #     
-    # })
-
     ###---###---###---###---###---###---###---###---###---###---###---###---###
     ##---Portfolioevaluation functions
     
