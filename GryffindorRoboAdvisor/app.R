@@ -104,10 +104,9 @@ body <- dashboardBody(
                            inputId = "button1",
                            label = "Next",
                            style = "unite", 
-                           color = "danger"
+                           color = "success"
                        )
-
-                       #actionButton("button1", "Next")
+                       
 
                 ), # end of first column object
 
@@ -148,8 +147,18 @@ body <- dashboardBody(
                        ),
 
                        fluidRow(
-                           column(7,actionButton("button2","Back")),
-                           column(1,actionButton("button3","Next")))
+                           actionBttn(
+                               inputId = "button2",
+                               label = "Back",
+                               style = "unite", 
+                               color = "danger"
+                           ),
+                           actionBttn(
+                               inputId = "button3",
+                               label = "Next",
+                               style = "unite", 
+                               color = "success"
+                           ))
 
                 ), # end of first column object
 
@@ -230,8 +239,18 @@ body <- dashboardBody(
                 hr(style="border-color: grey;"),
 
                 fluidRow(
-                    column(1,actionButton("button4","Back")),
-                    column(2,actionButton("button5","Next"))),
+                    actionBttn(
+                        inputId = "button4",
+                        label = "Back",
+                        style = "unite", 
+                        color = "danger"
+                    ),
+                    actionBttn(
+                        inputId = "button5",
+                        label = "Next",
+                        style = "unite", 
+                        color = "success"
+                    )),
                 tableOutput("table")
 
         ), # end of third tab item
@@ -240,8 +259,18 @@ body <- dashboardBody(
         # Fourth Tab: Industry Preferences
         tabItem(tabName = "tab4", h2("Portfolio Construction"), # tab item header
                 fluidRow(
-                    column(1,actionButton("button6","Back")),
-                    column(2,actionButton("button7","Next")))
+                    actionBttn(
+                        inputId = "button6",
+                        label = "Back",
+                        style = "unite", 
+                        color = "danger"
+                    ),
+                    actionBttn(
+                        inputId = "button7",
+                        label = "Finish",
+                        style = "unite", 
+                        color = "royal"
+                    ))
 
         ), # end of fourth tab item
 
@@ -249,7 +278,12 @@ body <- dashboardBody(
         # Fifth Tab: Portfolio Construction
         tabItem(tabName = "tab5", h2("Final Result: PDF Output"), # tab item header
                 fluidRow(
-                    column(7,actionButton("button8","Back")))
+                    actionBttn(
+                        inputId = "button8",
+                        label = "Back",
+                        style = "unite", 
+                        color = "danger"
+                    ))
 
         ) # end of fifth tab item
 
