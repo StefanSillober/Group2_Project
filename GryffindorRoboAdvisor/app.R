@@ -69,8 +69,6 @@ body <- dashboardBody(
                                fgColor = "#428BCA",
                                inputColor = "#428BCA"
                            )
-                           # sliderInput("inv_horizon","Years: ",
-                           #             value = 10, min = 1, max = 30, step = 0.5)
                        ),
                        box(
                            title = "Estimate your risk preference",
@@ -90,8 +88,34 @@ body <- dashboardBody(
                                column(7,uiOutput("resetbutton")),
                                column(3,uiOutput("startbutton"))),
                            fluidRow(
-                               column(7,actionButton("stop","Stop")),
-                               column(3,actionButton("play","Play"))),
+                               column(7,
+                                      actionBttn(
+                                        inputId = "stop",
+                                        label = NULL,
+                                        style = "material-circle", 
+                                        color = "warning",
+                                        icon = icon("pause")
+                                      )#actionButton("stop","Stop")
+                                      ),
+                               column(3,
+                                      actionBttn(
+                                        inputId = "play",
+                                        label = NULL,
+                                        style = "material-circle", 
+                                        color = "primary",
+                                        icon = icon("play")
+                                      )#actionButton("play","Play")
+                                      )
+                               ),
+                           sliderTextInput(
+                             inputId = "speed",
+                             label = "Simulation Speed:", 
+                             #grid = TRUE,
+                             #force_edges = TRUE,
+                             choices = c("Very Slow", 
+                                         "Slow", "Moderate", "Fast", "Very Fast"),
+                             selected = "Moderate"
+                           ),
                            tags$p("Press the", tags$em("Start"),
                                   "button in order to initiate the simulation.", br(),
                                   "Press", tags$em("Next Draw"), "in order to see one possible realization.", br(),
@@ -310,7 +334,7 @@ server <- function(input, output, session) {
     diffusion <- c(0.01, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
     drift <- c(0.001,0.005,0.015,0.02, 0.03, 0.06, 0.1)
     draws <- 1000
-
+    speed <- seq(1000, 100, length.out = 5)
 
     # dynamic reset button label
     output$resetbutton<-renderUI({
@@ -357,7 +381,7 @@ server <- function(input, output, session) {
     session1$timer <- reactiveTimer(Inf)
 
     observeEvent(input$play,{
-        session1$timer<-reactiveTimer(100)
+        session1$timer<-reactiveTimer(speed[which(c("Very Slow","Slow", "Moderate", "Fast", "Very Fast") == input$speed)]) # 100
         observeEvent(session1$timer(),{
             rand_draw()
         })
@@ -433,28 +457,28 @@ server <- function(input, output, session) {
     load("mydf.RData")
         
         if (!("NorthAmerica" %in% input$mymap_groups)) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("SP", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
         }
         
         if (!("Europe" %in% input$mymap_groups)) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("STOXX", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
         }
         
-        
+      
         if ("energy" %in% input$industry1) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("Energy", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
         }
 
         if ("health" %in% input$industry1) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("Health", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
         }
 
         if ("utilities" %in% input$industry1) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("Utilities", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
         }
 
         if ("financials" %in% input$industry1) {
-            mydf <- mydf[ , -which(names(mydf) %in% grep("Financial", names(mydf), value = TRUE))]
+            mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
         }
 
         mydf
