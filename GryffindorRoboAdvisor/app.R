@@ -12,7 +12,7 @@ library(githubinstall)
 library(dashboardthemes)
 library(geojsonio)
 library(rgdal)
-library(matlib)
+
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
@@ -519,6 +519,16 @@ server <- function(input, output, session) {
         #Returns a Portfolio Indexed to 100
         return(portfolio)
     }
+    
+    
+    ### CPPI Strategy on Sharpe optimized Portfolio
+    
+    cppi <- function(portfolio, protection, multiplier, security, lockin){
+        
+    }
+    
+    
+    
     
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
