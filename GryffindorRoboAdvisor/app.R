@@ -15,7 +15,7 @@ library(geojsonio)
 #devtools::install_github("RinteRface/shinydashboardPlus")
 library(shinyWidgets)
 library(rgdal)
-library(matlib)
+
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
@@ -617,9 +617,9 @@ server <- function(input, output, session) {
     staticdata <- read.csv("histstock.csv", header = TRUE, sep = ";",dec = ",")
     rownames(staticdata) <- staticdata[,1] 
     staticdata <-  staticdata[,-1]
+
     
-    #finaldata by user selection
-    finaldata <- staticdata
+      
     
     ### Sharperatio optimized pure Equity Portfolio
     # Takes a dataframe with all indices as input
@@ -672,7 +672,39 @@ server <- function(input, output, session) {
         #Returns a Portfolio Indexed to 100
         return(portfolio)
     }
-
+    
+    
+    ### Equity + Dept Portfolio
+    
+   
+     equityanddeptpf <- function(equity, dept, equityaspercent){
+      
+      
+      bondindex <- data.frame(matrix(NA,ncol = 2,nrow = nrow(equity)))
+      bondindex[,1] <- dept
+      bondindex[,2] <- dept
+      dept <- optimpf(bondindex)
+      portfolio <- data.frame()
+      
+      for(r in 1:nrow(equity)){
+        
+        portfolio[r,1] <- equity[r,1]*equityaspercent + dept[r,1]*(1-equityaspercent)
+        
+      }
+      
+      
+      
+      return(portfolio)
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                                 ##---ValueBoxes---##
