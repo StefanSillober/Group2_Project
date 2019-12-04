@@ -15,6 +15,7 @@ library(geojsonio)
 #devtools::install_github("RinteRface/shinydashboardPlus")
 library(shinyWidgets)
 library(rgdal)
+library(markdown)
 
 
 header <- dashboardHeader(
@@ -283,6 +284,9 @@ body <- dashboardBody(
         # Fourth Tab: Industry Preferences
         tabItem(tabName = "tab4", h2("Portfolio Construction"), # tab item header
                 fluidRow(
+                  radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
+                               inline = TRUE),
+                  downloadButton('downloadReport'),
                     actionBttn(
                         inputId = "button6",
                         label = "Back",
@@ -700,10 +704,50 @@ server <- function(input, output, session) {
       
     }
     
+     
+     
+     ###---###---###---###---###---###---###---###---###---###---###---###---###
+                        ##---Test Functions for Markdown file---##
+     
+     nicegraph <- function(x=1000) {
+       plot(sin(1:x), cos(1:x))
+     }
+    
+    piechart <- function(x=c(0.3,0.2,0.1,0.4)) {
+      pie(x)
+    }
+      
+    
+    randperform <- function(x=cumsum(rnorm(1000,1,5))) {
+      plot(x)
+    }
     
     
-    
-    
+    # PDF Download Handler
+    output$downloadReport <- downloadHandler(
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+        ))
+      },
+      
+      content = function(file) {
+        src <- normalizePath('report.Rmd')
+        
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        
+        library(rmarkdown)
+        out <- render('report.Rmd', switch(
+          input$format,
+          PDF = pdf_document(), HTML = html_document(), Word = word_document()
+        ))
+        file.rename(out, file)
+      }
+    )
     
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
