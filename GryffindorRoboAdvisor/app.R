@@ -702,6 +702,7 @@ server <- function(input, output, session) {
      
      
     ### Risk Parity Portfolio
+     
     riskparity <- function(covmatrix, par){
       
       par <- as.matrix(par)
@@ -725,13 +726,10 @@ server <- function(input, output, session) {
       }
 
     
-      
-      if(round(contributionpercent[1,1],7) != round(contributionpercent[2,1],7) & 
-         round(contributionpercent[1,1],7) != round(contributionpercent[3,1],7)){
         
-        portfoliorisk <- 2+abs((contributionpercent[1,1]-contributionpercent[2,1]))+
-                           abs((contributionpercent[1,1]-contributionpercent[3,1]))
-      }
+        portfoliorisk <- abs((contributionpercent[1,1]-contributionpercent[2,1]))+
+                         abs((contributionpercent[1,1]-contributionpercent[3,1]))
+      
       
       return(portfoliorisk)
       
@@ -757,15 +755,73 @@ server <- function(input, output, session) {
       
       optweights <- optim(par = as.vector(startingweights), fn = riskparity, 
                           covmatrix = covmatrix,lower = 0, method = "L-BFGS-B")
+      
+      optweights <- as.matrix(optweights$par)
+      optweights <- rbind(optweights,1-sum(optweights))
+      
+      portfolio <- data.frame(100)
+      
+      for(r in 1:nrow(returns)){
+        portfolio[(1+r),1] <- portfolio[r,1]*(1+(returns[r,1]*optweights[1,1]+
+                                              returns[r,2]*optweights[2,1]+
+                                              returns[r,3]*optweights[3,1]))
+        }
     
-      return(optweights)
+      return(portfolio)
 
     }
     
-    
   
+    ### MinVar Portfolio
+    minvar <- function(covmatrix,par){
+      
+      
+      par <- as.matrix(par)
+      par <- rbind(par, 1-sum(par[,1]))
+      
+      std <- t(par)%*%covmatrix%*%par
+      
+      if(par[1,1]+par[2,1]>1){
+        std <- 3
+      }
+      
+      return(std)
+    }
     
-
+    
+    
+    
+    minvarpf <- function(data){
+      
+      returns <- data.frame()
+      for(c in 1:ncol(data)){
+        for(r in 1:nrow(data)-1){
+          returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+        }
+      }
+      
+      returnmatrix <- as.matrix(returns[,])
+      covmatrix <- as.matrix(cov(returnmatrix))
+      
+      startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
+      
+      optweights <- optim(par = as.vector(startingweights), fn = minvar, 
+                          covmatrix = covmatrix,lower = 0, method = "L-BFGS-B")
+      
+      optweights <- as.matrix(optweights$par)
+      optweights <- rbind(optweights,1-sum(optweights))
+      
+      
+      portfolio <- data.frame(100)
+      for(r in 1:nrow(returns)){
+        portfolio[(1+r),1] <- portfolio[r,1]*(1+(as.matrix(returns[r,])%*%optweights))
+      }
+      
+      
+      return(portfolio)
+      
+    }
+    
     
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
