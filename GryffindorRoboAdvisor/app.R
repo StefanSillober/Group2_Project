@@ -623,8 +623,6 @@ server <- function(input, output, session) {
     staticdata <-  staticdata[,-1]
 
     
-      
-    
     ### Sharperatio optimized pure Equity Portfolio
     # Takes a dataframe with all indices as input
     optimpf <- function(data){
@@ -716,13 +714,74 @@ server <- function(input, output, session) {
     piechart <- function(x=c(0.3,0.2,0.1,0.4)) {
       pie(x)
     }
-      
-    
+
     randperform <- function(x=cumsum(rnorm(1000,1,5))) {
       plot(x)
     }
+
+     
+     
+    ### Risk Parity Portfolio
+    riskparity <- function(covmatrix, par){
+      
+      par <- as.matrix(par)
+      par <- rbind(par, 1-sum(par[,1]))
+      startingweights <- par
+      
+      marginalrisk <- covmatrix%*%startingweights
+      contribution <- as.matrix(as.numeric((startingweights*marginalrisk)))/sqrt(as.numeric((t(startingweights)%*%covmatrix%*%startingweights)))
+      portfoliorisk <- sqrt(as.numeric((t(startingweights)%*%covmatrix%*%startingweights)))
+      
+      
+      contributionpercent <- matrix(ncol = 1, nrow = 3)
+      for(r in 1:nrow(contribution)){
+        contributionpercent[r,1] <- contribution[r,1]/sum(contribution)
+      }
+      
+      
+      
+      if(par[1,1]+par[2,1]>1){
+        portfoliorisk <- 3
+      }
+
+      
+      if(round(contributionpercent[1,1],7) != round(contributionpercent[2,1],7) & 
+         round(contributionpercent[1,1],7) != round(contributionpercent[3,1],7)){
+        
+        portfoliorisk <- 2+abs((contributionpercent[1,1]-contributionpercent[2,1]))+
+                           abs((contributionpercent[1,1]-contributionpercent[3,1]))
+      }
+      
+      return(portfoliorisk)
+      
+    }
     
+    riskparitypf <- function(equity, dept, commodity){
+      
+      data <- as.matrix(cbind(equity,dept,commodity))
+      
+      startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
+      
+      returns <- data.frame()
+      for(c in 1:ncol(data)){
+        for(r in 1:nrow(data)-1){
+          returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+        }
+      }
+      
+      returnmatrix <- as.matrix(returns[,])
+      covmatrix <- cov(returnmatrix)
+      
+      
+      
+      optweights <- optim(par = as.vector(startingweights), fn = riskparity, 
+                          covmatrix = covmatrix,lower = 0, method = "L-BFGS-B")
     
+      return(optweights)
+
+    }
+    
+
     # PDF Download Handler
     output$downloadReport <- downloadHandler(
       filename = function() {
@@ -748,6 +807,10 @@ server <- function(input, output, session) {
         file.rename(out, file)
       }
     )
+
+    
+  
+
     
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
