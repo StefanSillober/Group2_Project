@@ -697,10 +697,33 @@ server <- function(input, output, session) {
       
       
       return(portfolio)
-      
-      
-      
-    }
+     }
+     
+     
+     indexpf <- function(data){
+       
+       returns <- data.frame()
+       for(c in 1:ncol(data)){
+         for(r in 1:nrow(data)-1){
+           returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+         }
+       }
+       
+       indexportfolio <- data.frame()
+       
+       for(c in 1:ncol(data)){
+         indexportfolio[1,c] <- 100
+       }
+       
+       for(c in 1:ncol(data)){
+         for(r in 1:nrow(returns)){
+           indexportfolio[r+1,c] <- indexportfolio[r,c]*(1+returns[r,c])
+         }
+       }
+       
+       return(indexportfolio)
+       
+     }
     
      
      
