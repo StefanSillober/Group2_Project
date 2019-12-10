@@ -18,7 +18,7 @@ The risk simulation is based on research on the benefit of repeated sampling in 
 
 The portfolio has been constructed in accordance with the country and industry preferences specified. Geographically, your portfolio includes securities listed in the following countries: `r input$mymap_groups`. The industries that have been chosen to exclude are:
 ```{r echo=FALSE, results='asis'}
-if (("NorthAmerica" %in% input$mymap_groups) || ("Europe" %in% input$mymap_groups)) {
+if (("NorthAmerica" %in% input$mymap_groups) || ("Asia" %in% input$mymap_groups) || ("Europe" %in% input$mymap_groups)) {
     if (is.null(input$industry1)) {
         cat("You invest in all industrie")
     } else {
@@ -37,22 +37,6 @@ To sum up, the portfolio has been constructed based on the following ETFs: `r co
 
 The portfolio has been constructed in accordance with the country and industry preferences specified. The portfolio consists of ...
 
-
-```{r echo=FALSE, fig.height=5, fig.width=5, fig.align='center'}
-piechart()
-```
-
-
-## Performance Chart
-
-Considerations about the performance...
-```{r echo=FALSE, fig.align='center'}
-randperform()
-```
-
-```{r echo=FALSE, fig.align='center'}
-testplot(newData())
-```
 
 
 ## Max Drawdown
