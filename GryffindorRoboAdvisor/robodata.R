@@ -18,7 +18,6 @@ ind_stocks_eu <- list('iShares STOXX Europe 600 Banks UCITS',
                       'iShares STOXX Europe 600 Media UCITS',
                       'iShares STOXX Europe 600 Oil & Gas UCITS',
                       'iShares STOXX Europe 600 Personal & Household Good',
-                      'iShares STOXX Europe 600 Real Estate UCITS',
                       'iShares STOXX Europe 600 Retail UCITS',
                       'iShares STOXX Europe 600 Technology UCITS',
                       'iShares STOXX Europe 600 Telecommunications UCITS',
@@ -37,7 +36,6 @@ ind_stocks_us <- list('STOXX North America 600 Banks USD Price',
                       'STOXX North America 600 Media USD Price',
                       'STOXX North America 600 Oil & Gas USD Price',
                       'STOXX North America 600 Personal & Household Goods',
-                      'STOXX North America 600 REIT USD',
                       'STOXX North America 600 Retail USD Price',
                       'STOXX North America 600 Technology USD Price',
                       'STOXX North America 600 Telecommunications USD Pri',
@@ -55,7 +53,6 @@ ind_stocks_asia <- list('STOXX Asia/Pacific 600 Banks USD Price',
                         'STOXX Asia/Pacific 600 Media USD Price',
                         'STOXX Asia/Pacific 600 Oil & Gas USD Price',
                         'STOXX Asia/Pacific 600 Personal & Household Goods',
-                        'STOXX Asia/Pacific 600 REIT USD',
                         'STOXX Asia/Pacific 600 Retail USD Price',
                         'STOXX Asia/Pacific 600 Technology USD Price',
                         'STOXX Asia/Pacific 600 Telecommunications USD Pric',
@@ -65,18 +62,20 @@ ind_stocks_asia <- list('STOXX Asia/Pacific 600 Banks USD Price',
 inds_eu <- list("EU_banks", "EU_resources", "EU_chemicals",
                 "EU_construction","EU_financials", "EU_food","EU_health",
                 "EU_industrial","EU_insurance", "EU_media", "EU_energy",
-                "EU_personal","EU_estate", "EU_retail", "EU_tech", "EU_telecom",
+                "EU_personal", "EU_retail", "EU_tech", "EU_telecom",
                 "EU_travel", "EU_utilities")
 inds_us <- list("US_banks", "US_resources", "US_chemicals",
-                "US_construction","US_financials", "US_food","US_health", "
-                US_industrial","US_insurance", "US_media", "US_energy",
-                "US_personal","US_estate", "US_retail", "US_tech", "US_telecom",
+                "US_construction","US_financials", "US_food","US_health", 
+                "US_industrial","US_insurance", "US_media", "US_energy",
+                "US_personal", "US_retail", "US_tech", "US_telecom",
                 "US_travel", "US_utilities")
 inds_asia <- list("AS_banks", "AS_resources", "AS_chemicals",
                   "AS_construction","AS_financials", "AS_food","AS_health", 
                   "AS_industrial","AS_insurance", "AS_media", "AS_energy",
-                  "AS_personal","AS_estate", "AS_retail", "AS_tech", "AS_telecom",
+                  "AS_personal", "AS_retail", "AS_tech", "AS_telecom",
                   "AS_travel", "AS_utilities")
+
+# Main scraping function
 
 
 dfs <- list()
@@ -102,17 +101,49 @@ data_scrap <- function(stocks,industries,country, yrs, scraping_function){
   return(dfs)
 }
 
+# function for limited data since Dec 2014 (prior data is not on investing)
+data_scrap_ltd <- function(stocks,industries,country, scraping_function){
+  for (item in Map(list, stocks,industries)){
+    
+    df <- scraping_function(item[[1]],
+                            country = country,
+                            from_date= '11/12/2014',
+                            to_date= format(Sys.Date(), '%d/%m/%Y'), as_json = TRUE)
+    #df$industry <- rep(item[[2]], nrow(df))
+    
+    
+    df <- jsonlite::fromJSON(df) %>% as.data.frame() %>% subset(select = c('historical.date','historical.close'))
+    
+    names(df)[names(df) == 'historical.close'] <- item[[2]]
+    names(df)[names(df) == 'historical.date'] <- 'Date'
+    
+    dfs <- list.append(dfs, df)
+    
+  }
+  return(dfs)
+}
+
 
 EU <- data_scrap(ind_stocks_eu, inds_eu, 'Germany', 20,
                  invest$get_etf_historical_data) %>% reduce(inner_join, by = "Date")  
-US <- data_scrap(ind_stocks_us, inds_us, 'world', 5,
-                 invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")  
-AS <- data_scrap(ind_stocks_asia, inds_asia, 'world', 5,
+US <- data_scrap_ltd(ind_stocks_us, inds_us, 'world',
+                     invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")  
+AS <- data_scrap_ltd(ind_stocks_asia, inds_asia, 'world',
                  invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")
 
+# historical data load for US and Asia exceeding the limit of investing.com
 datastatic <- read.csv("histstock.csv", sep=";")
+as_static <- read.csv("as.csv", sep = ';')
+us_static <- read.csv("us.csv", sep = ";")
+us_static[-c(1)] <- lapply( us_static[-c(1)], function(x) as.numeric(x))
+US_final <- bind_rows(US, us_static)
 
-ovr <- dplyr::inner_join(EU,US, by = "Date") %>% inner_join(.,AS, by = "Date") %>% inner_join(.,datastatic, by = "Date")
+as_static[-c(1)] <- lapply( as_static[-c(1)], function(x) as.numeric(x))
+AS_final <- bind_rows(AS, as_static)
+
+# Creating final dataframe
+ovr <- dplyr::inner_join(EU,US_final, by = "Date") %>%
+  inner_join(.,AS_final, by = "Date")%>% inner_join(.,datastatic, by = "Date")
 
 
 
