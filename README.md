@@ -1,4 +1,3 @@
-<h1>Gryffindor Robo Advisor</h1>
 <h2>Customized Portfolios for everybody</h2>
 
 <h3>Features</h3>
