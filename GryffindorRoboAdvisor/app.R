@@ -276,7 +276,8 @@ body <- dashboardBody(
                         style = "unite", 
                         color = "success"
                     )),
-                tableOutput("table")
+                tableOutput("table"),
+                plotOutput("testgraph")
 
         ), # end of third tab item
 
@@ -457,38 +458,129 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
     
-    output$table <- renderTable({
+    # output$table <- renderTable({
+    # load("mydf.RData")
+    #     
+    #     if (!("NorthAmerica" %in% input$mymap_groups)) {
+    #       mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    #     
+    #     if (!("Europe" %in% input$mymap_groups)) {
+    #       mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    #     
+    #   
+    #     if ("energy" %in% input$industry1) {
+    #       mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    # 
+    #     if ("health" %in% input$industry1) {
+    #       mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    # 
+    #     if ("utilities" %in% input$industry1) {
+    #       mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    # 
+    #     if ("financials" %in% input$industry1) {
+    #       mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
+    #     }
+    #   
+    #   mydf
+    # })
+    
+    # output$testgraph <- renderPlot({
+    #   load("mydf.RData")
+    # 
+    #   if (!("NorthAmerica" %in% input$mymap_groups)) {
+    #     mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    #   if (!("Europe" %in% input$mymap_groups)) {
+    #     mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    # 
+    #   if ("energy" %in% input$industry1) {
+    #     mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    #   if ("health" %in% input$industry1) {
+    #     mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    #   if ("utilities" %in% input$industry1) {
+    #     mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    #   if ("financials" %in% input$industry1) {
+    #     mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
+    #   }
+    # 
+    #   plot.ts(mydf)
+    # })
+
+    
     load("mydf.RData")
+    
+    data <- mydf
+    makeReactiveBinding("data")
+    
+    newData <- reactive({
+      #input$Button
+      #isolate({
+        data <- mydf
         
         if (!("NorthAmerica" %in% input$mymap_groups)) {
-            mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("SP", names(data), value = TRUE) %in% names(data))]
         }
         
         if (!("Europe" %in% input$mymap_groups)) {
-            mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("STOXX", names(data), value = TRUE) %in% names(data))]
         }
         
-      
+        
         if ("energy" %in% input$industry1) {
-            mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("Energy", names(data), value = TRUE) %in% names(data))]
         }
-
+        
         if ("health" %in% input$industry1) {
-            mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("Health", names(data), value = TRUE) %in% names(data))]
         }
-
+        
         if ("utilities" %in% input$industry1) {
-            mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("Utilities", names(data), value = TRUE) %in% names(data))]
         }
-
+        
         if ("financials" %in% input$industry1) {
-            mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
+          data <- data[ , -which(grep("Financial", names(data), value = TRUE) %in% names(data))]
         }
-
-        mydf
+        
+        data
+        
+        # datadata <- data
+        # 
+        # datadata <- subset(datadata, rating %in% input$checkGroups)
+        
+        
+      #})
+      
     })
     
-
+    output$testgraph <- renderPlot({
+      
+      data <- newData()
+      
+      # plot <- nPlot(rating ~ date_time, data = datadata, 
+      #               type = "multiBarHorizontalChart", dom = 'plot')
+      
+      plot <- plot.ts(data)
+      
+      return(plot)
+      
+    })
+    
+    
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                             ##---Map---##
@@ -568,48 +660,60 @@ server <- function(input, output, session) {
     
     # Average return - takes one column as an input
     averagereturn <- function(backtest){
-        portfoliologreturns <- data.frame()
-        for(r in 1:(nrow(backtest)-1)){
-            portfoliologreturns[r,1] <- log(backtest[r+1,1]/backtest[r,1])
-        }
-        averagereturn <- mean(portfoliologreturns[,1])*252
-        return(averagereturn)
+      portfoliologreturns <- data.frame()
+      
+      for(r in 1:(nrow(backtest) - 1)){
+        portfoliologreturns[r, 1] <- log(backtest[r + 1, 1]/backtest[r, 1])
+      }
+      
+      averagereturn <- mean(portfoliologreturns[, 1]) * 252
+      return(averagereturn)
     }
     
     # Calculate max drawdown - takes one column as an input
     maxdrawdown <- function(backtest){
-        trailingmaxdrawdown = data.frame()
-        for(r in 1:(nrow(backtest)-1)){
-            trailingmaxdrawdown[r,1] <- min(tail(backtest[,1],-r))/backtest[r,]-1
-        }
-        maxdrawdown <- min(trailingmaxdrawdown[,1])
-        return(maxdrawdown)
+      trailingmaxdrawdown = data.frame()
+      
+      for(r in 1:(nrow(backtest) - 1)){
+        trailingmaxdrawdown[r, 1] <- min(tail(backtest[, 1], -r)) /
+                                              backtest[r, ] - 1
+      }
+      
+      maxdrawdown <- min(trailingmaxdrawdown[, 1])
+      return(maxdrawdown)
     }
     
     # Calculate annual standard deviation
     yearlystd <- function(backtest){
-        portfoliologreturns <- data.frame()
-        for(r in 1:(nrow(backtest)-1)){
-            portfoliologreturns[r,1] <- log(backtest[r+1,1]/backtest[r,1])
-        }
-        yearlystd <- sd(portfoliologreturns[,1])*sqrt(252)
-        return(yearlystd)
+      portfoliologreturns <- data.frame()
+      
+      for(r in 1:(nrow(backtest) - 1)){
+        portfoliologreturns[r, 1] <- log(backtest[r + 1, 1] / backtest[r, 1])
+      }
+      
+      yearlystd <- sd(portfoliologreturns[, 1]) * sqrt(252)
+      return(yearlystd)
     }
     
     # Calculate sharpe Ratio for maximization
     sharpe <- function(expectedreturn, covmatrix, par){
-        
-        par <- as.matrix(par)
-        par <- rbind(par, 1-sum(par[,1]))
-        
-        #Calculate Portfolioreturn
-        pfreturn <- t(expectedreturn) %*% as.matrix(par)
-        #Calculate Portfoliostandardeviation
-        pfvar <- t(as.matrix(par)) %*% covmatrix %*% as.matrix(par)
-        #Calculate sharpe Ratio
-        sharperatio <- pfreturn/(pfvar^0.5)
-        
-        return(sharperatio)
+      
+      #optim, used, later needs the parameters as vector, but we need it as matrix
+      #here - therefore we have to change back and forth
+      par <- as.matrix(par)
+      
+      par <- rbind(par, 1 - sum(par[, 1]))
+      
+      #Calculate Portfolio return
+      pfreturn <- t(expectedreturn) %*% par
+      
+      #Calculate Portfolio standard deviation
+      pfvar <- t(par) %*% covmatrix %*% par
+      
+      #Calculate Sharpe Ratio
+      sharperatio <- pfreturn / (pfvar ^ 0.5)
+      
+      return(sharperatio)
     }
     
     
@@ -697,10 +801,33 @@ server <- function(input, output, session) {
       
       
       return(portfolio)
-      
-      
-      
-    }
+     }
+     
+     
+     indexpf <- function(data){
+       
+       returns <- data.frame()
+       for(c in 1:ncol(data)){
+         for(r in 1:nrow(data)-1){
+           returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+         }
+       }
+       
+       indexportfolio <- data.frame()
+       
+       for(c in 1:ncol(data)){
+         indexportfolio[1,c] <- 100
+       }
+       
+       for(c in 1:ncol(data)){
+         for(r in 1:nrow(returns)){
+           indexportfolio[r+1,c] <- indexportfolio[r,c]*(1+returns[r,c])
+         }
+       }
+       
+       return(indexportfolio)
+       
+     }
     
      
      
@@ -716,6 +843,10 @@ server <- function(input, output, session) {
     }
 
     randperform <- function(x=cumsum(rnorm(1000,1,5))) {
+      plot(x)
+    }
+    
+    testplot <- function(x) {
       plot(x)
     }
 

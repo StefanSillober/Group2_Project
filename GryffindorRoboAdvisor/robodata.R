@@ -2,7 +2,9 @@ library(reticulate)
 library(lubridate)
 library(tidyverse)
 library(rlist)
+
 library(jsonlite)
+
 use_python(Sys.which("python"))
 invest <- import("investpy")
 ind_stocks_eu <- list('iShares STOXX Europe 600 Automobiles & Parts UCITS',
