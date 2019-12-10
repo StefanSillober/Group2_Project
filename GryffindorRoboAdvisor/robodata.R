@@ -2,6 +2,7 @@ library(reticulate)
 library(lubridate)
 library(tidyverse)
 library(rlist)
+library(jsonlite)
 use_python(Sys.which("python"))
 invest <- import("investpy")
 ind_stocks_eu <- list('iShares STOXX Europe 600 Automobiles & Parts UCITS',
@@ -90,7 +91,7 @@ data_scrap <- function(stocks,industries,country, yrs, scraping_function){
     #df$industry <- rep(item[[2]], nrow(df))
     
     
-    df <- fromJSON(df) %>% as.data.frame() %>% subset(select = c('historical.date','historical.close'))
+    df <- jsonlite::fromJSON(df) %>% as.data.frame() %>% subset(select = c('historical.date','historical.close'))
     
     names(df)[names(df) == 'historical.close'] <- item[[2]]
     names(df)[names(df) == 'historical.date'] <- 'Date'
