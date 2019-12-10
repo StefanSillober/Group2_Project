@@ -680,8 +680,10 @@ server <- function(input, output, session) {
     source("robodata.R")
     
     #test dataframe
+    staticdata <- ovr
     rownames(staticdata) <- staticdata[,1] 
-    staticdata <-  staticdata[,-1]
+    staticdata <- staticdata[,-1]
+    staticdata <- staticdata[,1:17]
 
     
     ### Sharperatio optimized pure Equity Portfolio
