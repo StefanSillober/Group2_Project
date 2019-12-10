@@ -44,6 +44,7 @@ body <- dashboardBody(
     #     theme = "purple_gradient"
     #     #theme = "grey_dark"
     # ),
+  useShinyjs(),
 
     tabItems(
         # First Tab: Risk Evaluation
@@ -227,30 +228,29 @@ body <- dashboardBody(
                                  inputId = "industry1",
                                  label = "Industries", 
                                  choices = c(
-                                     "Oil & Gas" = "energy",
-                                     "Financials" = "financials",
-                                     "Healthcare" = "health",
-                                     "Utilities" = "utilities",
-                                     "Automobiles" = "auto",
-                                     "Basic Resources" = "resources",
-                                     "Chemicals" = "chemicals",
-                                     "Construction" = "construction",
-                                     "Banks" = "banks",
-                                     "Food & Beverage" = "food",
-                                     "Industrial Goods" = "industrial",
-                                     "Insurance" = "insurance",
-                                     "Media" = "media",
-                                     "Personal Goods" = "personal",
-                                     "Real Estate" = "real",
-                                     "Retail" = "retail",
-                                     "Technology" = "tech",
-                                     "Telecommunications" = "telecom",
-                                     "Travel & Leisure" = "travel"
+                                   "Bank" = "banks", 
+                                   "Resources"= "resources", 
+                                   "Chemicals"= "chemicals",
+                                   "Construction" = "construction",
+                                   "Financials" = "financials",
+                                   "Food" = "food",
+                                   "Health" = "health",
+                                   "Industrial" = "industrial",
+                                   "Insurance" = "insurance",
+                                   "Media" = "media",
+                                   "Energy" = "energy",
+                                   "Personal" = "personal", 
+                                   "Retail" = "retail", 
+                                   "Tech" = "tech", 
+                                   "Telecom" = "telecom",
+                                   "Travel" = "travel",
+                                   "Utilities" = "utilities"
                                  ),
                                  width = "100%",
                                  options = list(
                                      selected_header = "I don't want to invest in:",
-                                     non_selected_header = "Industries"
+                                     non_selected_header = "Industries",
+                                     limit = 18
                                  )
                                  
                              )
@@ -259,8 +259,6 @@ body <- dashboardBody(
                     tabPanel(title = tagList(shiny::icon("info"), "Details"), "Explanations about the map and how to use it ....")
                 ),
 
-
-                #leafletOutput("mymap"),
                 hr(style="border-color: grey;"),
 
                 fluidRow(
@@ -277,7 +275,6 @@ body <- dashboardBody(
                         color = "success"
                     )),
                 tableOutput("table")
-                #plotOutput("testgraph")
 
         ), # end of third tab item
 
@@ -457,33 +454,102 @@ server <- function(input, output, session) {
     
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
-    
-    output$table <- renderTable({
-    load("mydf.RData")
 
+    output$table <- renderTable({
+    #load("mydf.RData")
+      
+        # Subsetting by Industry
         if (!("NorthAmerica" %in% input$mymap_groups)) {
-          mydf <- mydf[ , -which(names(mydf) %in% grep("SP", names(mydf), value = TRUE))]
+          mydf <- mydf[ , -which(names(mydf) %in% grep("US", names(mydf), value = TRUE))]
         }
 
         if (!("Europe" %in% input$mymap_groups)) {
-          mydf <- mydf[ , -which(names(mydf) %in% grep("STOXX", names(mydf), value = TRUE))]
+          mydf <- mydf[ , -which(names(mydf) %in% grep("EU", names(mydf), value = TRUE))]
+        }
+      
+        if (!("Asia" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("AS", names(mydf), value = TRUE))]
+        }
+      
+        if (!("Africa" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Africa", names(mydf), value = TRUE))]
+        }
+      
+        if (!("Oceania" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Oceania", names(mydf), value = TRUE))]
+        }
+        
+        if (!("SouthAmerica" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("SouthAmerica", names(mydf), value = TRUE))]
+        }
+        
+        # if (!("Antarctica" %in% input$mymap_groups)) {
+        #   mydf <- mydf[ , -which(names(mydf) %in% grep("Antarctica", names(mydf), value = TRUE))]
+        # }
+      
+        # Subsetting by Industry
+        if ("banks" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Banks", names(mydf), value = TRUE))]
         }
 
-
-        if ("energy" %in% input$industry1) {
-          mydf <- mydf[ , -which(names(mydf) %in% grep("Energy", names(mydf), value = TRUE))]
+        if ("resources" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Resources", names(mydf), value = TRUE))]
         }
 
+        if ("chemicals" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Chemicals", names(mydf), value = TRUE))]
+        }
+
+        if ("construction" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Construction", names(mydf), value = TRUE))]
+        }
+      
+        if ("financials" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Financials", names(mydf), value = TRUE))]
+        }
+        
+        if ("food" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Food", names(mydf), value = TRUE))]
+        }
+        
         if ("health" %in% input$industry1) {
           mydf <- mydf[ , -which(names(mydf) %in% grep("Health", names(mydf), value = TRUE))]
         }
-
+        
+        if ("industrial" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Industrial", names(mydf), value = TRUE))]
+        }
+        
+        if ("insurance" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Insurance", names(mydf), value = TRUE))]
+        }
+        
+        if ("energy" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Energy", names(mydf), value = TRUE))]
+        }
+        
+        if ("personal" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Personal", names(mydf), value = TRUE))]
+        }
+        
+        if ("retail" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Retail", names(mydf), value = TRUE))]
+        }
+        
+        if ("tech" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Tech", names(mydf), value = TRUE))]
+        }
+        
+        if ("telecom" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Telecom", names(mydf), value = TRUE))]
+        }
+        
+        if ("travel" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Travel", names(mydf), value = TRUE))]
+        }
+        
         if ("utilities" %in% input$industry1) {
           mydf <- mydf[ , -which(names(mydf) %in% grep("Utilities", names(mydf), value = TRUE))]
-        }
-
-        if ("financials" %in% input$industry1) {
-          mydf <- mydf[ , -which(names(mydf) %in% grep("Financial", names(mydf), value = TRUE))]
         }
 
       mydf
@@ -1125,11 +1191,13 @@ server <- function(input, output, session) {
             updateTabItems(session, "tabs", newtab)
         }
     )
-
+    
+    
     ###---###---###---###---###---###---###---###---###---###---###---###---###
 } # end of server
 
 runApp(shinyApp(ui,server),launch.browser = TRUE)
+#runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
 #shinyApp(ui,server)
 
 
