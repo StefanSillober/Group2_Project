@@ -276,8 +276,8 @@ body <- dashboardBody(
                         style = "unite", 
                         color = "success"
                     )),
-                tableOutput("table"),
-                plotOutput("testgraph")
+                tableOutput("table")
+                #plotOutput("testgraph")
 
         ), # end of third tab item
 
@@ -458,128 +458,84 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
     
-    # output$table <- renderTable({
-    # load("mydf.RData")
-    #     
-    #     if (!("NorthAmerica" %in% input$mymap_groups)) {
-    #       mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    #     
-    #     if (!("Europe" %in% input$mymap_groups)) {
-    #       mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    #     
-    #   
-    #     if ("energy" %in% input$industry1) {
-    #       mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    # 
-    #     if ("health" %in% input$industry1) {
-    #       mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    # 
-    #     if ("utilities" %in% input$industry1) {
-    #       mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    # 
-    #     if ("financials" %in% input$industry1) {
-    #       mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
-    #     }
-    #   
-    #   mydf
-    # })
-    
-    # output$testgraph <- renderPlot({
-    #   load("mydf.RData")
-    # 
-    #   if (!("NorthAmerica" %in% input$mymap_groups)) {
-    #     mydf <- mydf[ , -which(grep("SP", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    #   if (!("Europe" %in% input$mymap_groups)) {
-    #     mydf <- mydf[ , -which(grep("STOXX", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    # 
-    #   if ("energy" %in% input$industry1) {
-    #     mydf <- mydf[ , -which(grep("Energy", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    #   if ("health" %in% input$industry1) {
-    #     mydf <- mydf[ , -which(grep("Health", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    #   if ("utilities" %in% input$industry1) {
-    #     mydf <- mydf[ , -which(grep("Utilities", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    #   if ("financials" %in% input$industry1) {
-    #     mydf <- mydf[ , -which(grep("Financial", names(mydf), value = TRUE) %in% names(mydf))]
-    #   }
-    # 
-    #   plot.ts(mydf)
-    # })
-
-    
+    output$table <- renderTable({
     load("mydf.RData")
+
+        if (!("NorthAmerica" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("SP", names(mydf), value = TRUE))]
+        }
+
+        if (!("Europe" %in% input$mymap_groups)) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("STOXX", names(mydf), value = TRUE))]
+        }
+
+
+        if ("energy" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Energy", names(mydf), value = TRUE))]
+        }
+
+        if ("health" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Health", names(mydf), value = TRUE))]
+        }
+
+        if ("utilities" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Utilities", names(mydf), value = TRUE))]
+        }
+
+        if ("financials" %in% input$industry1) {
+          mydf <- mydf[ , -which(names(mydf) %in% grep("Financial", names(mydf), value = TRUE))]
+        }
+
+      mydf
+    })
     
+    #### Actual subsetting
+    load("mydf.RData")
+
     data <- mydf
     makeReactiveBinding("data")
-    
+
     newData <- reactive({
-      #input$Button
-      #isolate({
         data <- mydf
-        
+
         if (!("NorthAmerica" %in% input$mymap_groups)) {
-          data <- data[ , -which(grep("SP", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("SP", names(data), value = TRUE))]
         }
         
         if (!("Europe" %in% input$mymap_groups)) {
-          data <- data[ , -which(grep("STOXX", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("STOXX", names(data), value = TRUE))]
         }
         
         
         if ("energy" %in% input$industry1) {
-          data <- data[ , -which(grep("Energy", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("Energy", names(data), value = TRUE))]
         }
         
         if ("health" %in% input$industry1) {
-          data <- data[ , -which(grep("Health", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("Health", names(data), value = TRUE))]
         }
         
         if ("utilities" %in% input$industry1) {
-          data <- data[ , -which(grep("Utilities", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("Utilities", names(data), value = TRUE))]
         }
         
         if ("financials" %in% input$industry1) {
-          data <- data[ , -which(grep("Financial", names(data), value = TRUE) %in% names(data))]
+          data <- data[ , -which(names(data) %in% grep("Financial", names(data), value = TRUE))]
         }
-        
+
         data
-        
-        # datadata <- data
-        # 
-        # datadata <- subset(datadata, rating %in% input$checkGroups)
-        
-        
-      #})
-      
     })
-    
+
     output$testgraph <- renderPlot({
-      
+
       data <- newData()
-      
-      # plot <- nPlot(rating ~ date_time, data = datadata, 
-      #               type = "multiBarHorizontalChart", dom = 'plot')
-      
-      plot <- plot.ts(data)
-      
-      return(plot)
-      
+
+      graph <- plot.ts(data)
+
+      return(graph)
+
     })
-    
+    ###
     
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
