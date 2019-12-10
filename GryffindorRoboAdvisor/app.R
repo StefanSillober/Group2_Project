@@ -742,11 +742,14 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
     ##---Portfolio Creation---###
     
+    #Get webscraped Data
+    source("robodata.R")
     
-    #read in static data
-    staticdata <- read.csv("histstock.csv", header = TRUE, sep = ";",dec = ",")
+    #test dataframe
+    staticdata <- ovr
     rownames(staticdata) <- staticdata[,1] 
-    staticdata <-  staticdata[,-1]
+    staticdata <- staticdata[,-1]
+    staticdata <- staticdata[,1:17]
 
     
     ### Sharperatio optimized pure Equity Portfolio
