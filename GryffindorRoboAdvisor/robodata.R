@@ -2,13 +2,11 @@ library(reticulate)
 library(lubridate)
 library(tidyverse)
 library(rlist)
-
 library(jsonlite)
 
 use_python(Sys.which("python"))
 invest <- import("investpy")
-ind_stocks_eu <- list('iShares STOXX Europe 600 Automobiles & Parts UCITS',
-                      'iShares STOXX Europe 600 Banks UCITS',
+ind_stocks_eu <- list('iShares STOXX Europe 600 Banks UCITS',
                       'iShares STOXX Europe 600 Basic Resources UCITS',
                       'iShares STOXX Europe 600 Chemicals UCITS',
                       'iShares STOXX Europe 600 Construction & Materials',
@@ -27,8 +25,7 @@ ind_stocks_eu <- list('iShares STOXX Europe 600 Automobiles & Parts UCITS',
                       'iShares STOXX Europe 600 Travel & Leisure UCITS',
                       'iShares STOXX Europe 600 Utilities UCITS')
 
-ind_stocks_us <- list('STOXX North America 600 Automobiles & Parts USD Pr',
-                      'STOXX North America 600 Banks USD Price',
+ind_stocks_us <- list('STOXX North America 600 Banks USD Price',
                       'STOXX North America 600 Basic Resources USD Price',
                       'STOXX North America 600 Chemicals USD Price',
                       'STOXX North America 600 Construction & Materials U',
@@ -46,8 +43,7 @@ ind_stocks_us <- list('STOXX North America 600 Automobiles & Parts USD Pr',
                       'STOXX North America 600 Telecommunications USD Pri',
                       'STOXX North America 600 Travel & Leisure USD Price',
                       'STOXX North America 600 Utilities USD Price')
-ind_stocks_asia <- list('STOXX Asia/Pacific 600 Automobiles & Parts USD Pri',
-                        'STOXX Asia/Pacific 600 Banks USD Price',
+ind_stocks_asia <- list('STOXX Asia/Pacific 600 Banks USD Price',
                         'STOXX Asia/Pacific 600 Basic Resources USD Price',
                         'STOXX Asia/Pacific 600 Chemicals USD Price',
                         'STOXX Asia/Pacific 600 Construction & Materials US',
@@ -65,17 +61,18 @@ ind_stocks_asia <- list('STOXX Asia/Pacific 600 Automobiles & Parts USD Pri',
                         'STOXX Asia/Pacific 600 Telecommunications USD Pric',
                         'STOXX Asia/Pacific 600 Travel & Leisure USD Price',
                         'STOXX Asia/Pacific 600 Utilities USD Price')
-inds_eu <- list("EU_auto","EU_banks", "EU_resources", "EU_chemicals",
+
+inds_eu <- list("EU_banks", "EU_resources", "EU_chemicals",
                 "EU_construction","EU_financials", "EU_food","EU_health",
                 "EU_industrial","EU_insurance", "EU_media", "EU_energy",
                 "EU_personal","EU_estate", "EU_retail", "EU_tech", "EU_telecom",
                 "EU_travel", "EU_utilities")
-inds_us <- list("US_auto","US_banks", "US_resources", "US_chemicals",
+inds_us <- list("US_banks", "US_resources", "US_chemicals",
                 "US_construction","US_financials", "US_food","US_health", "
                 US_industrial","US_insurance", "US_media", "US_energy",
                 "US_personal","US_estate", "US_retail", "US_tech", "US_telecom",
                 "US_travel", "US_utilities")
-inds_asia <- list("AS_auto","AS_banks", "AS_resources", "AS_chemicals",
+inds_asia <- list("AS_banks", "AS_resources", "AS_chemicals",
                   "AS_construction","AS_financials", "AS_food","AS_health", 
                   "AS_industrial","AS_insurance", "AS_media", "AS_energy",
                   "AS_personal","AS_estate", "AS_retail", "AS_tech", "AS_telecom",
@@ -83,6 +80,7 @@ inds_asia <- list("AS_auto","AS_banks", "AS_resources", "AS_chemicals",
 
 
 dfs <- list()
+
 data_scrap <- function(stocks,industries,country, yrs, scraping_function){
   for (item in Map(list, stocks,industries)){
     
@@ -105,12 +103,24 @@ data_scrap <- function(stocks,industries,country, yrs, scraping_function){
 }
 
 
-EU <- data_scrap(ind_stocks_eu, inds_eu, 'Germany', 2,
+EU <- data_scrap(ind_stocks_eu, inds_eu, 'Germany', 20,
                  invest$get_etf_historical_data) %>% reduce(inner_join, by = "Date")  
-US <- data_scrap(ind_stocks_us, inds_us, 'world', 2,
+US <- data_scrap(ind_stocks_us, inds_us, 'world', 5,
                  invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")  
-AS <- data_scrap(ind_stocks_asia, inds_asia, 'world', 2,
+AS <- data_scrap(ind_stocks_asia, inds_asia, 'world', 5,
                  invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")
+
+datastatic <- read.csv("histstock.csv", sep=";")
+
+ovr <- dplyr::inner_join(EU,US, by = "Date") %>% inner_join(.,AS, by = "Date") %>% inner_join(.,datastatic, by = "Date")
+
+
+
+
+
+
+
+
 
 
 
