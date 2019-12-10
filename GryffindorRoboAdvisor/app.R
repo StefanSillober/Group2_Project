@@ -15,6 +15,8 @@ library(geojsonio)
 #devtools::install_github("RinteRface/shinydashboardPlus")
 library(shinyWidgets)
 library(rgdal)
+#install.packages("tinytex")
+#tinytex::install_tinytex()
 library(markdown)
 
 header <- dashboardHeader(
@@ -275,6 +277,7 @@ body <- dashboardBody(
                     )),
                 
                 tableOutput("table"),
+                plotOutput("testgraph"),
                 textOutput("Error_regions"),
                 useSweetAlert()
 
@@ -464,116 +467,125 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
 
+    source("robodata.R")
+    
+    dates <- ovr[, 1]
+    commodities <- ovr[, 56]
+    longbond <- ovr[, 57]
+    shortbond <- ovr[, 58]
+    data <- ovr[, -c(1, 56:58)]
+
+    makeReactiveBinding("data")
     output$table <- renderTable({
-    #load("mydf.RData")
-      load("data.RData")
+
+      data <- ovr[, -c(1, 56:58)]
       
         # Subsetting by Industry
         if (!("NorthAmerica" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("US", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
         }
 
         if (!("Europe" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("EU", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("EU", names(data), value = TRUE))]
         }
       
         if (!("Asia" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("AS", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("AS", names(data), value = TRUE))]
         }
       
         if (!("Africa" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("Africa", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("Africa", names(data), value = TRUE))]
         }
       
         if (!("Australia" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("Australia", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("Australia", names(data), value = TRUE))]
         }
         
         if (!("Latinamerica" %in% input$mymap_groups)) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("Latinamerica", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("Latinamerica", names(data), value = TRUE))]
         }
         
         # if (!("Antarctica" %in% input$mymap_groups)) {
-        #   ovr <- ovr[ , -which(names(ovr) %in% grep("Antarctica", names(ovr), value = TRUE))]
+        #   data <- data[ , -which(names(data) %in% grep("Antarctica", names(data), value = TRUE))]
         # }
       
         # Subsetting by Industry
         if ("banks" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("banks", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("banks", names(data), value = TRUE))]
         }
 
         if ("resources" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("resources", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("resources", names(data), value = TRUE))]
         }
 
         if ("chemicals" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("chemicals", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("chemicals", names(data), value = TRUE))]
         }
 
         if ("construction" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("construction", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("construction", names(data), value = TRUE))]
         }
       
         if ("financials" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("financials", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("financials", names(data), value = TRUE))]
         }
         
         if ("food" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("food", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("food", names(data), value = TRUE))]
         }
         
         if ("health" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("health", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("health", names(data), value = TRUE))]
         }
         
         if ("industrial" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("industrial", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("industrial", names(data), value = TRUE))]
         }
         
         if ("insurance" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("insurance", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("insurance", names(data), value = TRUE))]
         }
         
         if ("energy" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("energy", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("energy", names(data), value = TRUE))]
         }
         
         if ("personal" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("personal", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("personal", names(data), value = TRUE))]
         }
         
         if ("retail" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("retail", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("retail", names(data), value = TRUE))]
         }
         
         if ("tech" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("tech", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("tech", names(data), value = TRUE))]
         }
         
         if ("telecom" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("telecom", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("telecom", names(data), value = TRUE))]
         }
         
         if ("travel" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("travel", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("travel", names(data), value = TRUE))]
         }
         
         if ("utilities" %in% input$industry1) {
-          ovr <- ovr[ , -which(names(ovr) %in% grep("utilities", names(ovr), value = TRUE))]
+          data <- data[ , -which(names(data) %in% grep("utilities", names(data), value = TRUE))]
         }
 
-      ovr
+      data
     })
     
     
     #### Actual subsetting
-    load("data.RData")
+    #Get webscraped Data
     
-    data <- ovr
-    makeReactiveBinding("data")
     
+    
+    data <- ovr[, -c(1, 56:58)]
     newData <- reactive({
-      data <- ovr
+      data <- ovr[, -c(1, 56:58)]
       
       # Subsetting by Industry
       if (!("NorthAmerica" %in% input$mymap_groups)) {
@@ -674,13 +686,13 @@ server <- function(input, output, session) {
 
     
     # output$testgraph <- renderPlot({
-    #   
+    # 
     #   data <- newData()
-    #   
-    #   graph <- plot.ts(data)
-    #   
+    # 
+    #   graph <- plot.ts(data[, -1])
+    # 
     #   return(graph)
-    #   
+    # 
     # })
     
 
@@ -693,8 +705,8 @@ server <- function(input, output, session) {
     
     # RV <- reactiveValues(Clicks = list())
     
-    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "southamerica")
-    groups <- c("Africa", "Antarctica", "Asia", "Europe", "NorthAmerica", "Oceania", "SouthAmerica")
+    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "latinamerica")
+    groups <- c("Africa", "Antarctica", "Asia", "Europe", "NorthAmerica", "Oceania", "Latinamerica")
     colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
     
     for (i in region) {
@@ -823,16 +835,13 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
     ##---Portfolio Creation---###
     
-    #Get webscraped Data
-    #source("robodata.R")
+    
     
     #test dataframe
     
-    #staticdata <- ovr
-    #rownames(staticdata) <- staticdata[,1] 
-    #staticdata <- staticdata[,-1]
-    #staticdata <- staticdata[,1:17]
-
+    # chosendata <- as.data.frame(newData())
+    # rownames(newData()) <- newData()[, 1]
+    # chosendata <- chosendata[, -1]
     
     ### Sharperatio optimized pure Equity Portfolio
     # Takes a dataframe with all indices as input
@@ -840,8 +849,8 @@ server <- function(input, output, session) {
         #get past returns
         returns <- data.frame()
         for(c in 1:ncol(data)){
-            for(r in 1:nrow(data)-1){
-                returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+            for(r in 1:nrow(data) - 1){
+                returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
             }
         }
         #startingweights for optimisation -1 so that weights add up to 1
@@ -1293,5 +1302,3 @@ server <- function(input, output, session) {
 runApp(shinyApp(ui,server),launch.browser = TRUE)
 #runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
 #shinyApp(ui,server)
-
-
