@@ -17,7 +17,6 @@ library(shinyWidgets)
 library(rgdal)
 library(markdown)
 
-
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
                                   mainText = "Robo-Advisor",
@@ -44,8 +43,7 @@ body <- dashboardBody(
     #     theme = "purple_gradient"
     #     #theme = "grey_dark"
     # ),
-
-    tabItems(
+        tabItems(
         # First Tab: Risk Evaluation
         tabItem(tabName = "tab1", h2("Risk Evaluation"), # tab item header
             fluidRow(
@@ -276,8 +274,9 @@ body <- dashboardBody(
                         style = "unite", 
                         color = "success"
                     )),
-                tableOutput("table")
-                #plotOutput("testgraph")
+                tableOutput("table"),
+                textOutput("Error_regions"),
+                useSweetAlert()
 
         ), # end of third tab item
 
@@ -385,12 +384,17 @@ server <- function(input, output, session) {
     session1 <- reactiveValues()
     session1$timer <- reactiveTimer(Inf)
 
-    observeEvent(input$play,{
-        session1$timer<-reactiveTimer(speed[which(c("Very Slow","Slow", "Moderate", "Fast", "Very Fast") == input$speed)]) # 100
+    
+    observeEvent(
+      input$play, { session1$timer <- reactiveTimer(speed[which(c("Very Slow",
+                                                      "Slow",
+                                                      "Moderate",
+                                                      "Fast",
+                                                      "Very Fast") == input$speed)]) # 100
         observeEvent(session1$timer(),{
             rand_draw()
         })
-    })
+      })
 
 
     observeEvent(input$stop,{
@@ -535,8 +539,6 @@ server <- function(input, output, session) {
       return(graph)
 
     })
-    ###
-    
 
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                             ##---Map---##
@@ -603,7 +605,8 @@ server <- function(input, output, session) {
     foundmap <- foundmap %>%
         addLayersControl(overlayGroups = groups,
                          options = layersControlOptions(collapsed = FALSE))
-    
+
+
     # ------------------------
     # integrate the map into shiny
     
@@ -1081,8 +1084,8 @@ server <- function(input, output, session) {
         input$button2, {
             newtab <- switch(input$tabs, "tab2" = "tab1")
             updateTabItems(session, "tabs", newtab)
-        }
-    )
+          }
+        )
 
     observeEvent(
         input$button3, {
@@ -1100,8 +1103,17 @@ server <- function(input, output, session) {
 
     observeEvent(
         input$button5, {
+          if (is.null(input$mymap_groups)) {
+            sendSweetAlert(
+              session = session,
+              title = "Error Message",
+              text = "Please select at least one region!",
+              type = "error"
+            )
+          } else {
             newtab <- switch(input$tabs, "tab3" = "tab4")
             updateTabItems(session, "tabs", newtab)
+          }
         }
     )
 
