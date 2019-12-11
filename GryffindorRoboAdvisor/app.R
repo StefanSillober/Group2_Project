@@ -20,7 +20,8 @@ library(rgdal)
 library(markdown)
 
 header <- dashboardHeader(
-    title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"), "Gryffindor"),
+    title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"),
+                                                      "Gryffindor"),
                                   mainText = "Robo-Advisor",
                                   badgeText = "Group 2",
                                   badgeBackColor = "#40E0D0",
@@ -31,11 +32,16 @@ header <- dashboardHeader(
 
 sidebar <- dashboardSidebar(width = 280,
                             sidebarMenu(id = "tabs",
-                                        menuItem("Identify your goals", tabName = "tab1"),
-                                        menuItem("Verify Risk Preference", tabName = "tab2"),
-                                        menuItem("Geographical Preferences", tabName = "tab3"),
-                                        menuItem("Industry Preferences", tabName = "tab4"),
-                                        menuItem("Portfolio Construction", tabName = "tab5")
+                                        menuItem("Identify your goals",
+                                                 tabName = "tab1"),
+                                        menuItem("Verify Risk Preference",
+                                                 tabName = "tab2"),
+                                        menuItem("Geographical Preferences",
+                                                 tabName = "tab3"),
+                                        menuItem("Industry Preferences",
+                                                 tabName = "tab4"),
+                                        menuItem("Portfolio Construction",
+                                                 tabName = "tab5")
                             ), disable = TRUE
 )
 
@@ -52,12 +58,15 @@ body <- dashboardBody(
         tabItem(tabName = "tab1", h2("Risk Evaluation"), # tab item header
             fluidRow(
                 column(width = 4,
-                       box(
-                           title = "How much money would you like to invest?",
+                       box(title = "How much money would you like to invest?",
                            width = 0.25,
-                           numericInput("initial_wealth", "Euros:",  value = 10000,
-                                        min = 0, max = NA)
+                           numericInput("initial_wealth",
+                                        "Euros:",
+                                        value = 10000,
+                                        min = 0,
+                                        max = NA)
                        ),
+                       
                        box(
                            title = "What is your investment horizon?",
                            width = 0.25,
@@ -70,22 +79,25 @@ body <- dashboardBody(
                                displayPrevious = TRUE, 
                                lineCap = "round",
                                fgColor = "#428BCA",
-                               inputColor = "#428BCA"
-                           )
+                               inputColor = "#428BCA")
                        ),
-                       box(
-                           title = "Estimate your risk preference",
+                       
+                       box(title = "Estimate your risk preference",
                            width = 0.25,
-                           sliderInput("rpref","Risk: ",
-                                       value = 4, min = 1, max = 7, step = 1),
+                           sliderInput("rpref",
+                                       "Risk: ",
+                                       value = 4,
+                                       min = 1,
+                                       max = 7,
+                                       step = 1),
                            "Estimate your risk on the scale from 1 to 7,
                                    where 1 is the lowest tolerance towards risk,
                                    and 7 is the highest"
                        ),
+                       
                        hr(style="border-color: grey;"),
 
-                       box(
-                           title = "Simulate possible outcomes",
+                       box(title = "Simulate possible outcomes",
                            width = 0.25,
                            fluidRow(
                                column(7,uiOutput("resetbutton")),
@@ -98,8 +110,9 @@ body <- dashboardBody(
                                         style = "material-circle", 
                                         color = "warning",
                                         icon = icon("pause")
-                                      )#actionButton("stop","Stop")
+                                        )#actionButton("stop","Stop")
                                       ),
+                               
                                column(3,
                                       actionBttn(
                                         inputId = "play",
@@ -107,24 +120,35 @@ body <- dashboardBody(
                                         style = "material-circle", 
                                         color = "primary",
                                         icon = icon("play")
-                                      )#actionButton("play","Play")
+                                        )#actionButton("play","Play")
                                       )
                                ),
+                           
                            sliderTextInput(
                              inputId = "speed",
                              label = "Simulation Speed:", 
                              #grid = TRUE,
                              #force_edges = TRUE,
                              choices = c("Very Slow", 
-                                         "Slow", "Moderate", "Fast", "Very Fast"),
+                                         "Slow",
+                                         "Moderate",
+                                         "Fast",
+                                         "Very Fast"),
                              selected = "Moderate"
                            ),
+                           
                            tags$p("Press the", tags$em("Start"),
-                                  "button in order to initiate the simulation.", br(),
-                                  "Press", tags$em("Next Draw"), "in order to see one possible realization.", br(),
-                                  "Use the", tags$em("Play"), "and", tags$em("Stop"), "button",
-                                  "in order run the simulation automatically.", br(),
-                                  "Finally use", tags$em("Reset"), "in order to start anew."),
+                                  "button in order to initiate the simulation.",
+                                  br(),
+                                  "Press", tags$em("Next Draw"),
+                                  "in order to see one possible realization.",
+                                  br(),
+                                  "Use the", tags$em("Play"), "and",
+                                  tags$em("Stop"), "button",
+                                  "in order run the simulation automatically.",
+                                  br(),
+                                  "Finally use", tags$em("Reset"),
+                                  "in order to start anew."),
                        ),
                        
                        actionBttn(
@@ -135,16 +159,28 @@ body <- dashboardBody(
                        )
                        
 
-                ), # end of first column object
+                ), 
+################ end of first column object#####################################
+################################################################################
 
                 column(width = 8,
                        tabBox(
-                           title = tagList(shiny::icon("dice"), "Portfolio Simulation"), width = 12,
-                           # The id lets us use input$tabset1 on the server to find the current tab
-                           id = "tabset1", height = "550",
-                           tabPanel(title = tagList(shiny::icon("chart-bar"), "Histogram"), plotOutput('distPlot', height = "500")),
-                           tabPanel(title = tagList(shiny::icon("info"), "Details"), "Explanation to the return sampling, i.e. GBM, 90% & 10% VaR ....")
-                       ),
+                         id = "tabset1",
+                         title = tagList(shiny::icon("dice"),
+                                         "Portfolio Simulation"),
+                         width = 12,
+                         height = "550",
+                         tabPanel(
+                           title = tagList(shiny::icon("chart-bar"),
+                                           "Histogram"),
+                           plotOutput('distPlot', height = "500")
+                         ),
+                         
+                         tabPanel(
+                           title = tagList(shiny::icon("info"), "Details"),
+                           "Explanation to the return sampling, i.e. GBM, 90% & 10% VaR ...."
+                         )
+                       ), 
 
                        # Dynamic valueBoxes
                        valueBoxOutput("horizonBox"),
@@ -154,12 +190,14 @@ body <- dashboardBody(
                        valueBoxOutput("uplimBox"),
                        valueBoxOutput("lowlimBox")
                 )
+            )
+###################### end of fluid row ########################################
+        ),
+###################### end of first tab item####################################
+################################################################################
 
-            ) # end of fluid row
-        ), # end of first tab item
 
-
-        # Second Tab: Risk Evaluation
+######## Second Tab: Risk Evaluation ###########################################
         tabItem(tabName = "tab2", h2("Risk Evaluation"), # tab item header
             fluidRow(
                 column(width = 4,
@@ -167,7 +205,10 @@ body <- dashboardBody(
                            title = "Estimate your risk preference",
                            width = 0.25,
                            sliderInput("rpref2","Risk: ",
-                                       value = 4, min = 1, max = 7, step = 1),
+                                       value = 4,
+                                       min = 1,
+                                       max = 7,
+                                       step = 1),
                            "Estimate your risk on the scale from 1 to 7,
                                    where 1 is the lowest tolerance towards risk,
                                    and 7 is the highest"
@@ -180,6 +221,7 @@ body <- dashboardBody(
                                style = "unite", 
                                color = "danger"
                            ),
+                           
                            actionBttn(
                                inputId = "button3",
                                label = "Next",
@@ -187,16 +229,25 @@ body <- dashboardBody(
                                color = "success"
                            ))
 
-                ), # end of first column object
+                ),
+################# end of first column object ###################################
+################################################################################
 
                 column(width = 8,
                        tabBox(
-                           title = tagList(shiny::icon("dice"), "Portfolio Simulation"), width = 12,
-                           # The id lets us use input$tabset1 on the server to find the current tab
-                           id = "tabset1", height = "550",
-                           tabPanel(title = tagList(shiny::icon("chart-bar"), "Histogram"), plotOutput('distPlotFinish', height = "500")),
-                           tabPanel(title = tagList(shiny::icon("info"), "Details"), "Explanations ...")
-                           ),
+                         id = "tabset1",
+                         title = tagList(shiny::icon("dice"),
+                                         "Portfolio Simulation"),
+                         width = 12,
+                         height = "550",
+                         tabPanel(title = tagList(shiny::icon("chart-bar"),
+                                                  "Histogram"),
+                                  plotOutput('distPlotFinish',
+                                             height = "500")),
+                         tabPanel(title = tagList(shiny::icon("info"),
+                                                  "Details"),
+                                  "Explanations ...")
+                       ), 
 
                        # Dynamic valueBoxes
                        valueBoxOutput("horizonBox1"),
@@ -208,88 +259,118 @@ body <- dashboardBody(
 
                 )
 
-            ) # end of fluidrow
-        ), # end of second tab item
-
+            )
+############# end of fluidrow ##################################################
+################################################################################
+        ),
+######### end of second tab item ###############################################
+################################################################################
 
         # Third Tab: Geographical Preferences
-        tabItem(tabName = "tab3", h2("Geographical Preferences"), # tab item header
+        tabItem(tabName = "tab3",
+                h2("Geographical Preferences"), # tab item header
+                
+                ######## Inputs to let the user choose regions via map
                 tabBox(
-                    title = tagList(shiny::icon("map-pin"), "Geographical Preferences"), width = 8,
-                    id = "tabset1", height = "550",
-                    tabPanel(title = tagList(shiny::icon("globe-americas"), "Map"), leafletOutput("mymap", height = "500")),
-                    tabPanel(title = tagList(shiny::icon("info"), "Details"), "Explanations about the map and how to use it ....")
+                  id = "tabset1",
+                  height = "550",
+                  title = tagList(shiny::icon("map-pin"),
+                                  "Geographical Preferences"),
+                  width = 8,
+                  tabPanel(
+                    title = tagList(shiny::icon("globe-americas"),"Map"),
+                    leafletOutput("mymap", height = "500")
+                  ),
+                  
+                  tabPanel(
+                    title = tagList(shiny::icon("info"), "Details"),
+                    "Explanations about the map and how to use it ...."
+                  )
+                ), 
+                
+                ######## Inputs to let the user switch on and of industries
+                tabBox(
+                  title = tagList(shiny::icon("industry"), "Industry Preferences"),
+                  width = 4,
+                  id = "tabset1",
+                  height = "550",
+                  tabPanel(
+                    title = tagList(shiny::icon("clipboard-check"), "Sectors"),
+                    multiInput(
+                      inputId = "industry1",
+                      label = "Industries",
+                      choices = c(
+                        "Banks" = "banks",
+                        "Resources" = "resources",
+                        "Chemicals" = "chemicals",
+                        "Construction" = "construction",
+                        "Financials" = "financials",
+                        "Food" = "food",
+                        "Health" = "health",
+                        "Industrial" = "industrial",
+                        "Insurance" = "insurance",
+                        "Media" = "media",
+                        "Energy" = "energy",
+                        "Personal" = "personal",
+                        "Retail" = "retail",
+                        "Tech" = "tech",
+                        "Telecom" = "telecom",
+                        "Travel" = "travel",
+                        "Utilities" = "utilities"
+                      ),
+                      
+                      width = "100%",
+                      options = list(
+                        selected_header = "I don't want to invest in:",
+                        non_selected_header = "Industries",
+                        limit = 16 ####the user should't deselect all industries
+                      )
+                    )
+                  ),
+                  
+                  
+                  tabPanel(title = tagList(shiny::icon("info"), "Details"),
+                           "Explanations about the map and how to use it ....")
                 ),
                 
-                tabBox(
-                    title = tagList(shiny::icon("industry"), "Industry Preferences"), width = 4,
-                    id = "tabset1", height = "550",
-                    tabPanel(title = tagList(shiny::icon("clipboard-check"), "Sectors"),
-                            multiInput(
-                                 inputId = "industry1",
-                                 label = "Industries", 
-                                 choices = c(
-                                   "Banks" = "banks", 
-                                   "Resources"= "resources", 
-                                   "Chemicals"= "chemicals",
-                                   "Construction" = "construction",
-                                   "Financials" = "financials",
-                                   "Food" = "food",
-                                   "Health" = "health",
-                                   "Industrial" = "industrial",
-                                   "Insurance" = "insurance",
-                                   "Media" = "media",
-                                   "Energy" = "energy",
-                                   "Personal" = "personal", 
-                                   "Retail" = "retail", 
-                                   "Tech" = "tech", 
-                                   "Telecom" = "telecom",
-                                   "Travel" = "travel",
-                                   "Utilities" = "utilities"
-                                 ),
-                                 width = "100%",
-                                 options = list(
-                                     selected_header = "I don't want to invest in:",
-                                     non_selected_header = "Industries",
-                                     limit = 16
-                                 )
-                                 
-                             )
-                             
-                             ),
-                    tabPanel(title = tagList(shiny::icon("info"), "Details"), "Explanations about the map and how to use it ....")
-                ),
-
-                hr(style="border-color: grey;"),
-
+                hr(style = "border-color: grey;"),
+                
                 fluidRow(
-                    actionBttn(
-                        inputId = "button4",
-                        label = "Back",
-                        style = "unite", 
-                        color = "danger"
-                    ),
-                    actionBttn(
-                        inputId = "button5",
-                        label = "Next",
-                        style = "unite", 
-                        color = "royal"
-                    )),
+                  actionBttn(
+                    inputId = "button4",
+                    label = "Back",
+                    style = "unite",
+                    color = "danger"
+                  ),
+                  
+                  actionBttn(
+                    inputId = "button5",
+                    label = "Next",
+                    style = "unite",
+                    color = "royal"
+                    )
+                ), 
                 
                 tableOutput("table"),
                 plotOutput("testgraph"),
                 textOutput("Error_regions"),
                 useSweetAlert()
 
-        ), # end of third tab item
+        ),
+######### end of third tab item ################################################
+################################################################################
 
 
         # Fourth Tab: Industry Preferences
-        tabItem(tabName = "tab4", h2("Portfolio Construction"), # tab item header
+        tabItem(tabName = "tab4",
+                h2("Portfolio Construction"), # tab item header
                 fluidRow(
                   plotOutput("ourPF"),
-                  radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
+                  radioButtons('format',
+                               'Document format',
+                               c('PDF','HTML', 'Word'),
                                inline = TRUE),
+                  
                   downloadButton('downloadReport'),
                     actionBttn(
                         inputId = "button6",
@@ -299,25 +380,29 @@ body <- dashboardBody(
                     )
                   )
 
-        ) # end of fourth tab item
-
-
-    ) # bracket from tab items
-) # End of the dashboardBody
-
+        )
+######### end of fourth tab item ###############################################
+################################################################################
+    )
+##### end of all tab items #####################################################
+################################################################################
+)
+# End of the dashboardBody######################################################
+################################################################################
 
 ui <- dashboardPage(header, sidebar, body)
 
 
 server <- function(input, output, session) {
 
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-                            ##---Risk Preferences---##
+############################ Risk Preference ###################################
+################################################################################
+          
 
-    # Histogram Simulation
+### Histogram Simulation ######################################################
 
     sim <- reactiveValues() # reactive to store all reactive variables
-    sim$resetindicator<-0   # used to change button labels
+    sim$resetindicator <- 0 # used to change button labels
     sim$numb <- c()
     sim$data <- c()
     sim$terminal_wealth <- c()
@@ -326,100 +411,136 @@ server <- function(input, output, session) {
     draws <- 1000
     speed <- seq(1000, 100, length.out = 5)
 
-    # dynamic reset button label
-    output$resetbutton<-renderUI({
-        if(sim$resetindicator==0){
-            lbl<-"Set Parameters"
-        }else{
-            lbl<-"Reset"
-        }
-        actionButton("reset",label=lbl)
+### dynamic reset button label #################################################
+    
+    output$resetbutton <- renderUI({
+      if (sim$resetindicator == 0) {
+        lbl <- "Set Parameters"
+        
+      } else {
+        lbl <- "Reset"
+      }
+      actionButton("reset", label = lbl)
     })
 
-    # dynamic start button label
-    output$startbutton<-renderUI({
-        if(sum(sim$data)==0){
-            lbl2<-"Start"
-        }else{
-            lbl2<-"Next Draw"
-        }
-        actionButton("nextdraw",label=lbl2)
+### dynamic start button label #################################################
+    
+    output$startbutton <- renderUI({
+      if (sum(sim$data) == 0) {
+        lbl2 <- "Start"
+        
+      } else {
+        lbl2 <- "Next Draw"
+      }
+      actionButton("nextdraw", label = lbl2)
     })
 
-    # Random draw function for individual draws
+### Random draw function for individual draws ##################################
+    
     rand_draw <- function() {
         req(input$initial_wealth)
         req(input$rpref)
         req(input$inv_horizon)
 
-        sim$resetindicator<-1 # change button label
+        sim$resetindicator <- 1 # change button label
 
-        sim$numb <- input$initial_wealth * exp((drift[input$rpref]-(1/2)*(diffusion[input$rpref])^2)*input$inv_horizon + diffusion[input$rpref]*sqrt(input$inv_horizon)*rnorm(1))
+        sim$numb <- input$initial_wealth * exp((drift[input$rpref] - (1 / 2) *
+                                                  (diffusion[input$rpref]) ^ 2)*
+                                                 input$inv_horizon +
+                                                 diffusion[input$rpref] *
+                                                 sqrt(input$inv_horizon)* 
+                                                 rnorm(1))
         sim$data <<- c(sim$data, sim$numb)
 
         sim$data
     }
 
-    ## when nextweek button is pressed
-    observeEvent(input$nextdraw,{
+### when next-draw button is pressed ###########################################
+
+        observeEvent(input$nextdraw,{
         rand_draw()
-    })
-
-
-    ###
-    session1 <- reactiveValues()
-    session1$timer <- reactiveTimer(Inf)
+          })
+    
+        session1 <- reactiveValues()
+        session1$timer <- reactiveTimer(Inf)
 
     
-    observeEvent(
-      input$play, { session1$timer <- reactiveTimer(speed[which(c("Very Slow",
-                                                      "Slow",
-                                                      "Moderate",
-                                                      "Fast",
-                                                      "Very Fast") == input$speed)]) # 100
-        observeEvent(session1$timer(),{
-            rand_draw()
-        })
-      })
+        observeEvent(
+          input$play,
+          {session1$timer <- reactiveTimer(speed[which(c("Very Slow",
+                                                         "Slow",
+                                                         "Moderate",
+                                                         "Fast",
+                                                         "Very Fast") ==
+                                                         input$speed)]) # 100
+          observeEvent(session1$timer(), {
+          rand_draw()
+            })
+######### end of subevent ######################################################
+          })
 
 
-    observeEvent(input$stop,{
-        session1$timer<- reactiveTimer(Inf)
-    })
+          observeEvent(input$stop, {
+            session1$timer<- reactiveTimer(Inf)
+            })
 
 
-    ## when reset button is pressed (set everything to original values, plus set seed)
-    observeEvent(input$reset,{
-
-        sim$resetindicator<-0
-
-        sim$numb <- c(0)
-        sim$data <- c(0)
-    })
-
-
-    ## main plot output
-    output$distPlot <- renderPlot({
-        if (sum(sim$data)==0){
-            #hist(0, xlim = c(0,input$initial_wealth*5), ylim = c(0,100), xlab = "Terminal Wealth", main = "Potential Evolvement of Wealth")
-            return() # no plot if reset
-         } else if (length(sim$data)==300) { # automatically reset after # draws
-            sim$resetindicator<-0
+## when reset button is pressed, set everything to original values plus set seed
+          observeEvent(input$reset, {
+            
+            sim$resetindicator <- 0
             sim$numb <- c(0)
             sim$data <- c(0)
-            #session1$timer<-reactiveTimer(Inf)
-        }
+            })
 
-        hist(sim$data[sim$data < input$initial_wealth*5], breaks = seq(from = 0, to = (input$initial_wealth*5), by = (input$initial_wealth*5)/30),
-             xlim = c(0,input$initial_wealth*5), ylim = c(0,100), xlab = "Terminal Wealth", main = "Potential Evolvement of Wealth")
-        # hist(sim$data, breaks = seq(from = 0, to = (input$initial_wealth*5), by = (input$initial_wealth*5)/30),
-        #      xlim = c(0,input$initial_wealth*5), ylim = c(0,100), xlab = "Terminal Wealth", main = "Potential Evolvement of Wealth")
+
+#### main plot output###########################################################
+################################################################################
+          output$distPlot <- renderPlot({
+            
+            if (sum(sim$data) == 0) {
+              return() # no plot if reset everything was reset
+              
+            } else if (length(sim$data) == 300) {
+              # automatically reset after # draws to exit
+              sim$resetindicator <- 0
+              sim$numb <- c(0)
+              sim$data <- c(0)
+              #session1$timer<-reactiveTimer(Inf)
+            }
+
+        hist(sim$data[sim$data < input$initial_wealth * 5],
+             breaks = seq(from = 0, to = (input$initial_wealth * 5),
+                          by = (input$initial_wealth * 5) / 30),
+             xlim = c(0, input$initial_wealth * 5),
+             ylim = c(0, 100),
+             xlab = "Terminal Wealth",
+             main = "Potential Evolvement of Wealth")
+        
         grid()
-        points(x = input$initial_wealth, y = 0, pch = 24, bg = "grey", cex = 2)
-        abline(v = mean(sim$data), col = "blue", lwd = 2, lty = 2)
+        
+        points(x = input$initial_wealth,
+               y = 0,
+               pch = 24,
+               bg = "grey",
+               cex = 2)
+        
+######## include a vertical line indicating the mean ###########################        
+        abline(v = mean(sim$data),
+               col = "blue",
+               lwd = 2,
+               lty = 2)
 
-        abline(v = sim$data[order(sim$data)[length(sim$data)*0.9]], col = "green", lwd = 2, lty = 2)
-        abline(v = sim$data[order(sim$data)[length(sim$data)*0.1]], col = "red", lwd = 2, lty = 2)
+######## include a vertical line indicating the 90% percentile #################        
+        abline(v = sim$data[order(sim$data)[length(sim$data) * 0.9]],
+               col = "green",
+               lwd = 2,
+               lty = 2)
+        
+        abline(v = sim$data[order(sim$data)[length(sim$data) * 0.1]],
+               col = "red",
+               lwd = 2,
+               lty = 2)
 
         legend("topright", legend = c("90 out of 100 boundary", "10 out of 100 boundary", "Average Terminal Wealth", "Initial Investment"),
                col=c("green", "red", "blue", "grey"), lty = c(2, 2, 2, NA), pch = c(NA, NA, NA, 24), box.lty=0, cex = 1.2)
