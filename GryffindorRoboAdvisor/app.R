@@ -289,6 +289,7 @@ body <- dashboardBody(
         # Fourth Tab: Industry Preferences
         tabItem(tabName = "tab4", h2("Portfolio Construction"), # tab item header
                 fluidRow(
+                  plotOutput("ourPF"),
                   radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
                                inline = TRUE),
                   downloadButton('downloadReport'),
@@ -467,7 +468,9 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
 
-    source("robodata.R")
+    #source("robodata.R")
+    
+    load("datas.RData")
     
     dates <- ovr[, 1]
     commodities <- ovr[, 56]
@@ -887,7 +890,7 @@ server <- function(input, output, session) {
         #Form Portfolio with the sharperatio optimal weights
         portfolio <- data.frame()
         for(r in 1:nrow(indexportfolio)){
-            portfolio[r,1] <- as.matrix(indexportfolio[r,]) %*% optweights
+            portfolio[r,1] <- as.numeric(as.matrix(indexportfolio[r,]) %*% optweights)
         }
         
         
@@ -1087,9 +1090,117 @@ server <- function(input, output, session) {
       return(portfolio)
       
     }
-
-
-
+    ##### call the portfolios according to the user's input ###################
+    
+    ########################################################
+    ######### short bond only ###############
+    output$ourPF <- renderPlot({
+      if(input$rpref2 == 1 && input$inv_horizon <= 5) {
+        plot.ts(shortbond)
+        summary(shortbond)
+      }
+    
+    ######## long bond only #################  
+      if((input$rpref2 == 2 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 1 && input$inv_horizon > 5 && input$inv_horizon <= 10)) {
+        plot.ts(longbond)
+        summary(longbond)
+      }
+      
+      if((input$rpref2 == 3 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 3 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 2 && input$inv_horizon < 5 && input$inv_horizon <= 10)) {
+        
+        rownames(ovr) <- ovr[,1] 
+        ovr <- ovr[,-1]
+        
+        flor <- floor(ncol(ovr)/15)
+        remaining <- ncol(ovr)-15*flor
+        lastdata <- flor+1
+        
+        for(n in 1:flor){
+          
+          data.n  <- ovr[((n-1)*15+1):(n*15)]
+          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+          
+          
+        }
+        
+        data.lastdata <- ovr[(flor*15):ncol(ovr)]
+        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(ovr)))[,-1]
+        
+        for(n in 1:(flor+1)){
+          
+          dataopt<- minvarpf(get(paste("data",n,sep="")))
+          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          finaldata <- cbind(finaldata,dataopt)
+          
+        }
+        
+        finalpf <- minvarpf(finaldata)
+       
+        plot.ts(finalpf)
+        summary(finalpf)
+      }
+    
+      if (input$rpref2 == 1 && input$inv_horizon > 10) {
+        ######################### Equity + longbond viel bond #################
+        
+      }
+      
+      if((input$rpref2 == 4 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 5 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 4 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 5 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 3 && input$inv_horizon > 10) ||
+         (input$rpref2 == 4 && input$inv_horizon > 10)) {
+        
+        ######################### risk parity ##########################
+      }
+      
+      if((input$rpref2 == 6 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 6 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 5 && input$inv_horizon > 10)) {
+        
+        ######################### Equity + longbond viel equity ########
+      }
+      
+      if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
+          (input$rpref2 == 7 && input$inv_horizon <= 5) ||
+          (input$rpref2 == 7 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+          (input$rpref2 == 7 && input$inv_horizon > 10)) {
+        
+        ########################## Pure Equity² #########################
+        
+        flor <- floor(ncol(newData()) / 15)
+        remaining <- ncol(newData()) - 15 * flor
+        lastdata <- flor + 1
+        
+        for(n in 1:flor){
+          
+          data.n  <- newData()[((n-1)*15+1):(n*15)]
+          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+        }
+        
+        data.lastdata <- newData()[(flor*15):ncol(newData())]
+        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
+        
+        for(n in 1:(flor+1)){
+          
+          dataopt<- optimpf(get(paste("data",n,sep="")))
+          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          finaldata <- cbind(finaldata,dataopt)
+        }
+        
+        finalpf <- optimpf(finaldata)
+      }
+      plot.ts(as.matrix(finalpf))
+    })
+    
     # PDF Download Handler
     output$downloadReport <- downloadHandler(
       filename = function() {
@@ -1302,3 +1413,4 @@ server <- function(input, output, session) {
 runApp(shinyApp(ui,server),launch.browser = TRUE)
 #runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
 #shinyApp(ui,server)
+
