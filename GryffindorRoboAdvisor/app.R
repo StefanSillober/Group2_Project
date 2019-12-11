@@ -251,7 +251,7 @@ body <- dashboardBody(
                                  options = list(
                                      selected_header = "I don't want to invest in:",
                                      non_selected_header = "Industries",
-                                     limit = 18
+                                     limit = 16
                                  )
                                  
                              )
@@ -273,15 +273,13 @@ body <- dashboardBody(
                         inputId = "button5",
                         label = "Next",
                         style = "unite", 
-                        color = "success"
+                        color = "royal"
                     )),
                 
                 tableOutput("table"),
                 plotOutput("testgraph"),
                 textOutput("Error_regions"),
                 useSweetAlert()
-
-
 
         ), # end of third tab item
 
@@ -298,28 +296,10 @@ body <- dashboardBody(
                         label = "Back",
                         style = "unite", 
                         color = "danger"
-                    ),
-                    actionBttn(
-                        inputId = "button7",
-                        label = "Finish",
-                        style = "unite", 
-                        color = "royal"
-                    ))
+                    )
+                  )
 
-        ), # end of fourth tab item
-
-
-        # Fifth Tab: Portfolio Construction
-        tabItem(tabName = "tab5", h2("Final Result: PDF Output"), # tab item header
-                fluidRow(
-                    actionBttn(
-                        inputId = "button8",
-                        label = "Back",
-                        style = "unite", 
-                        color = "danger"
-                    ))
-
-        ) # end of fifth tab item
+        ) # end of fourth tab item
 
 
     ) # bracket from tab items
@@ -465,6 +445,18 @@ server <- function(input, output, session) {
                col=c("green", "red", "blue", "grey"), lty = c(2, 2, 2, NA), pch = c(NA, NA, NA, 24), box.lty=0, cex = 1.2)
     })
     
+    
+    # Set the selected input of the first slider equal to the second (but not the other way round)
+    observe({
+      updateSliderInput(session, "rpref2", value = input$rpref)
+    })
+    
+    observe({
+      updateSliderInput(session, "rpref", value = input$rpref2)
+    })
+    
+    
+    
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
 
@@ -482,7 +474,7 @@ server <- function(input, output, session) {
     output$table <- renderTable({
 
       data <- ovr[, -c(1, 56:58)]
-      
+
         # Subsetting by Industry
         if (!("NorthAmerica" %in% input$mymap_groups)) {
           data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
@@ -583,13 +575,11 @@ server <- function(input, output, session) {
     
     #### Actual subsetting
     #Get webscraped Data
-    
-    
-    
     data <- ovr[, -c(1, 56:58)]
     newData <- reactive({
       data <- ovr[, -c(1, 56:58)]
-      
+
+      data <- ovr[, -c(1, 56:58)]
       # Subsetting by Industry
       if (!("NorthAmerica" %in% input$mymap_groups)) {
         data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
@@ -1388,20 +1378,6 @@ server <- function(input, output, session) {
     observeEvent(
         input$button6, {
             newtab <- switch(input$tabs, "tab4" = "tab3")
-            updateTabItems(session, "tabs", newtab)
-        }
-    )
-
-    observeEvent(
-        input$button7, {
-            newtab <- switch(input$tabs, "tab4" = "tab5")
-            updateTabItems(session, "tabs", newtab)
-        }
-    )
-
-    observeEvent(
-        input$button8, {
-            newtab <- switch(input$tabs, "tab5" = "tab4")
             updateTabItems(session, "tabs", newtab)
         }
     )
