@@ -460,9 +460,9 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
 
-    #source("robodata.R")
+    source("robodata.R")
     
-    load("datas.RData")
+    #load("datas.RData")
     
     dates <- ovr[, 1]
     commodities <- ovr[, 56]
@@ -1086,40 +1086,43 @@ server <- function(input, output, session) {
     ######### short bond only ###############
     output$ourPF <- renderPlot({
       if(input$rpref2 == 1 && input$inv_horizon <= 5) {
+  
         plot.ts(shortbond)
+        title("short bond")
         summary(shortbond)
       }
     
     ######## long bond only #################  
       if((input$rpref2 == 2 && input$inv_horizon <= 5) ||
          (input$rpref2 == 1 && input$inv_horizon > 5 && input$inv_horizon <= 10)) {
+        
         plot.ts(longbond)
+        title("long bond")
         summary(longbond)
       }
       
+    ######### minimum variance PF ##############  
       if((input$rpref2 == 3 && input$inv_horizon <= 5) ||
-         (input$rpref2 == 3 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
-         (input$rpref2 == 2 && input$inv_horizon < 5 && input$inv_horizon <= 10)) {
+         #redundant but inclluded so that the number of conitions equals the number of PFs
+         (input$rpref2 == 3 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 2 && input$inv_horizon > 10)) {
         
-        rownames(ovr) <- ovr[,1] 
-        ovr <- ovr[,-1]
-        
-        flor <- floor(ncol(ovr)/15)
-        remaining <- ncol(ovr)-15*flor
+        flor <- floor(ncol(newData())/15)
+        remaining <- ncol(newData())-15*flor
         lastdata <- flor+1
         
         for(n in 1:flor){
           
-          data.n  <- ovr[((n-1)*15+1):(n*15)]
+          data.n  <- newData()[((n-1)*15+1):(n*15)]
           assign(as.character(paste("data", as.character(n),sep="")),data.n)
           
           
         }
         
-        data.lastdata <- ovr[(flor*15):ncol(ovr)]
+        data.lastdata <- newData()[(flor*15):ncol(newData())]
         assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
         
-        finaldata <- data.frame(matrix(nrow = nrow(ovr)))[,-1]
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
         
         for(n in 1:(flor+1)){
           
@@ -1129,40 +1132,54 @@ server <- function(input, output, session) {
           
         }
         
-        finalpf <- minvarpf(finaldata)
+        minimumvariancepf <- minvarpf(finaldata)
        
-        plot.ts(finalpf)
-        summary(finalpf)
+        plot.ts(minimumvariancepf)
+        title("minimum variance portfolio")
+        summary(minimumvariancepf)
       }
     
+      ######################### Equity + longbond overweight bond #################
       if (input$rpref2 == 1 && input$inv_horizon > 10) {
-        ######################### Equity + longbond viel bond #################
+       
+        flor <- floor(ncol(newData()) / 15)
+        remaining <- ncol(newData()) - 15 * flor
+        lastdata <- flor + 1
         
+        for(n in 1:flor){
+          
+          data.n  <- newData()[((n-1)*15+1):(n*15)]
+          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+        }
+        
+        data.lastdata <- newData()[(flor*15):ncol(newData())]
+        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
+        
+        for(n in 1:(flor+1)){
+          
+          dataopt<- optimpf(get(paste("data",n,sep="")))
+          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          finaldata <- cbind(finaldata,dataopt)
+        }
+        
+        finalpf <- optimpf(finaldata)
+        
+        longbondindexed <- indexpf(as.data.frame(longbond))
+        equitylongbondpf <- equityanddeptpf(finalpf, longbondindexed, 0.2)
+        
+        plot.ts(as.matrix(equitylongbondpf))
+        title("Equity-Longbond Bond overweight")
       }
       
+      ######################### risk parity ############################
       if((input$rpref2 == 4 && input$inv_horizon <= 5) ||
          (input$rpref2 == 5 && input$inv_horizon <= 5) ||
-         (input$rpref2 == 4 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
-         (input$rpref2 == 5 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 4 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 5 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 3 && input$inv_horizon > 10) ||
          (input$rpref2 == 4 && input$inv_horizon > 10)) {
-        
-        ######################### risk parity ##########################
-      }
-      
-      if((input$rpref2 == 6 && input$inv_horizon <= 5) ||
-         (input$rpref2 == 6 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
-         (input$rpref2 == 5 && input$inv_horizon > 10)) {
-        
-        ######################### Equity + longbond viel equity ########
-      }
-      
-      if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
-          (input$rpref2 == 7 && input$inv_horizon <= 5) ||
-          (input$rpref2 == 7 && input$inv_horizon < 5 && input$inv_horizon <= 10) ||
-          (input$rpref2 == 7 && input$inv_horizon > 10)) {
-        
-        ########################## Pure Equity² #########################
         
         flor <- floor(ncol(newData()) / 15)
         remaining <- ncol(newData()) - 15 * flor
@@ -1187,8 +1204,85 @@ server <- function(input, output, session) {
         }
         
         finalpf <- optimpf(finaldata)
+        
+        longbonddf <- as.data.frame(longbond)
+        commoditydf <- as.data.frame(commodities)
+        
+        riskparpf <- riskparitypf(finalpf, longbonddf, commoditydf)
+        
+        plot.ts(riskparpf)
+        title("Risk Parity")
       }
-      plot.ts(as.matrix(finalpf))
+      
+      ########################### equity + longbond overweight equity ########
+      if((input$rpref2 == 6 && input$inv_horizon <= 5) ||
+         (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 5 && input$inv_horizon > 10)) {
+        
+        flor <- floor(ncol(newData()) / 15)
+        remaining <- ncol(newData()) - 15 * flor
+        lastdata <- flor + 1
+        
+        for(n in 1:flor){
+          
+          data.n  <- newData()[((n-1)*15+1):(n*15)]
+          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+        }
+        
+        data.lastdata <- newData()[(flor*15):ncol(newData())]
+        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
+        
+        for(n in 1:(flor+1)){
+          
+          dataopt<- optimpf(get(paste("data",n,sep="")))
+          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          finaldata <- cbind(finaldata,dataopt)
+        }
+        
+        finalpf <- optimpf(finaldata)
+        
+        longbondindexed <- indexpf(as.data.frame(longbond))
+        muchequitybondpf <- equityanddeptpf(finalpf, longbondindexed, 0.8)
+        
+        plot.ts(as.matrix(muchequitybondpf))
+        title("Equity-Bond Equity overweight")
+      }
+      
+      ########################## Pure Equity² #########################
+      if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
+          (input$rpref2 == 7 && input$inv_horizon <= 5) ||
+          (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
+          (input$rpref2 == 7 && input$inv_horizon > 10)) {
+        
+        flor <- floor(ncol(newData()) / 15)
+        remaining <- ncol(newData()) - 15 * flor
+        lastdata <- flor + 1
+        
+        for(n in 1:flor){
+          
+          data.n  <- newData()[((n-1)*15+1):(n*15)]
+          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+        }
+        
+        data.lastdata <- newData()[(flor*15):ncol(newData())]
+        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
+        
+        for(n in 1:(flor+1)){
+          
+          dataopt<- optimpf(get(paste("data",n,sep="")))
+          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          finaldata <- cbind(finaldata,dataopt)
+        }
+        
+        finalpf <- optimpf(finaldata)
+        plot.ts(as.matrix(finalpf))
+        title("Pure Equity")
+      }
+      
     })
     
     # PDF Download Handler
