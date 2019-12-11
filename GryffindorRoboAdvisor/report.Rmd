@@ -42,6 +42,13 @@ plot(newData())
 
 The portfolio has been constructed in accordance with the country and industry preferences specified. The portfolio consists of ...
 
+```{r}
+plot(newData())
+```
+
+```{r}
+plot.ts(indexpf(newData()))
+```
 
 
 ## Max Drawdown

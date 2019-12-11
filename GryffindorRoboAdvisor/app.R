@@ -571,9 +571,11 @@ server <- function(input, output, session) {
     
     
     #### Actual subsetting
+    #Get webscraped Data
     data <- ovr[, -c(1, 56:58)]
     newData <- reactive({
-      
+      data <- ovr[, -c(1, 56:58)]
+
       data <- ovr[, -c(1, 56:58)]
       # Subsetting by Industry
       if (!("NorthAmerica" %in% input$mymap_groups)) {
