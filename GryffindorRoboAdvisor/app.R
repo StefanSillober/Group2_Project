@@ -15,6 +15,8 @@ library(geojsonio)
 #devtools::install_github("RinteRface/shinydashboardPlus")
 library(shinyWidgets)
 library(rgdal)
+#install.packages("tinytex")
+#tinytex::install_tinytex()
 library(markdown)
 
 header <- dashboardHeader(
@@ -275,6 +277,7 @@ body <- dashboardBody(
                     )),
                 
                 tableOutput("table"),
+                plotOutput("testgraph"),
                 textOutput("Error_regions"),
                 useSweetAlert()
 
@@ -456,18 +459,19 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
                     ##---Country and Industry Subsetting---##
 
+    source("robodata.R")
     
-    load("data.RData")
-    
-    data <- ovr[,-1]
+    dates <- ovr[, 1]
+    commodities <- ovr[, 56]
+    longbond <- ovr[, 57]
+    shortbond <- ovr[, 58]
+    data <- ovr[, -c(1, 56:58)]
+
     makeReactiveBinding("data")
-    
-    
     output$table <- renderTable({
-    #load("mydf.RData")
-      #load("data.RData")
-      data <- ovr[,-1]
-      
+
+      data <- ovr[, -c(1, 56:58)]
+
         # Subsetting by Industry
         if (!("NorthAmerica" %in% input$mymap_groups)) {
           data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
@@ -567,15 +571,10 @@ server <- function(input, output, session) {
     
     
     #### Actual subsetting
-    #load("data.RData")
-    
-    #data <- ovr[,-1]
-    #makeReactiveBinding("data")
-    
+    data <- ovr[, -c(1, 56:58)]
     newData <- reactive({
-      #load("data.RData")
-      data <- ovr[,-1]
       
+      data <- ovr[, -c(1, 56:58)]
       # Subsetting by Industry
       if (!("NorthAmerica" %in% input$mymap_groups)) {
         data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
@@ -675,13 +674,13 @@ server <- function(input, output, session) {
 
     
     # output$testgraph <- renderPlot({
-    #   
+    # 
     #   data <- newData()
-    #   
-    #   graph <- plot.ts(data)
-    #   
+    # 
+    #   graph <- plot.ts(data[, -1])
+    # 
     #   return(graph)
-    #   
+    # 
     # })
     
 
@@ -694,8 +693,8 @@ server <- function(input, output, session) {
     
     # RV <- reactiveValues(Clicks = list())
     
-    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "southamerica")
-    groups <- c("Africa", "Antarctica", "Asia", "Europe", "NorthAmerica", "Oceania", "SouthAmerica")
+    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "latinamerica")
+    groups <- c("Africa", "Antarctica", "Asia", "Europe", "NorthAmerica", "Oceania", "Latinamerica")
     colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
     
     for (i in region) {
@@ -824,16 +823,13 @@ server <- function(input, output, session) {
     ###---###---###---###---###---###---###---###---###---###---###---###---###
     ##---Portfolio Creation---###
     
-    #Get webscraped Data
-    #source("robodata.R")
+    
     
     #test dataframe
     
-    #staticdata <- ovr
-    #rownames(staticdata) <- staticdata[,1] 
-    #staticdata <- staticdata[,-1]
-    #staticdata <- staticdata[,1:17]
-
+    # chosendata <- as.data.frame(newData())
+    # rownames(newData()) <- newData()[, 1]
+    # chosendata <- chosendata[, -1]
     
     ### Sharperatio optimized pure Equity Portfolio
     # Takes a dataframe with all indices as input
@@ -841,8 +837,8 @@ server <- function(input, output, session) {
         #get past returns
         returns <- data.frame()
         for(c in 1:ncol(data)){
-            for(r in 1:nrow(data)-1){
-                returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+            for(r in 1:nrow(data) - 1){
+                returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
             }
         }
         #startingweights for optimisation -1 so that weights add up to 1
@@ -1280,5 +1276,3 @@ server <- function(input, output, session) {
 runApp(shinyApp(ui,server),launch.browser = TRUE)
 #runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
 #shinyApp(ui,server)
-
-
