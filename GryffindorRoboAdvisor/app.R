@@ -19,6 +19,8 @@ library(rgdal)
 #tinytex::install_tinytex()
 library(markdown)
 library(rmarkdown)
+library(shinycssloaders)
+
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"),
@@ -28,6 +30,7 @@ header <- dashboardHeader(
                                   badgeBackColor = "#40E0D0",
                                   badgeTextColor = "white"),
     titleWidth = 300
+
 )
 
 
@@ -184,7 +187,7 @@ body <- dashboardBody(
                        ), 
 
                        # Dynamic valueBoxes
-                       valueBoxOutput("horizonBox"),
+                       withSpinner(valueBoxOutput("horizonBox")),
                        valueBoxOutput("returnBox"),
                        valueBoxOutput("stdBox"),
                        valueBoxOutput("avgBox"),
@@ -251,7 +254,7 @@ body <- dashboardBody(
                        ), 
 
                        # Dynamic valueBoxes
-                       valueBoxOutput("horizonBox1"),
+                       withSpinner(valueBoxOutput("horizonBox1")),
                        valueBoxOutput("returnBox1"),
                        valueBoxOutput("stdBox1"),
                        valueBoxOutput("avgBox1"),
@@ -280,7 +283,7 @@ body <- dashboardBody(
                   width = 8,
                   tabPanel(
                     title = tagList(shiny::icon("globe-americas"),"Map"),
-                    leafletOutput("mymap", height = "500")
+                    withSpinner(leafletOutput("mymap", height = "500"))
                   ),
                   
                   tabPanel(
@@ -391,7 +394,20 @@ body <- dashboardBody(
 # End of the dashboardBody######################################################
 ################################################################################
 
-ui <- dashboardPage(header, sidebar, body)
+ui <- dashboardPage(header, sidebar, body,tags$head(
+                    tags$style(
+                    HTML(".shiny-notification {
+                    height: 100px;
+                    width: 800px;
+                    position:fixed;
+                    top: calc(50% - 50px);;
+                    left: calc(50% - 400px);;
+                    }
+                    "
+                    )))
+                    
+)
+
 
 
 server <- function(input, output, session) {
@@ -1449,6 +1465,46 @@ server <- function(input, output, session) {
 ### End of Minimum Variance Portfolio function #################################
     }
     
+##### Dataspliting and optimizing###############################################
+################################################################################
+    
+    datasplit <- function(subdata,updateProgress = NULL){
+      flor <- floor(ncol(subdata) / 15)
+      remaining <- ncol(subdata) - 15 * flor
+      lastdata <- flor + 1
+    
+      for (n in 1:flor){
+      
+        data.n  <- subdata[((n - 1) * 15 + 1):(n * 15)]
+        assign(as.character(paste("data", as.character(n), sep = "")), data.n)
+      }
+    
+      data.lastdata <- subdata[(flor * 15):ncol(subdata)]
+      assign(as.character(paste("data", as.character((flor + 1)), sep="")),
+             data.lastdata)
+    
+      finaldata <- data.frame(matrix(nrow = nrow(subdata)))[, -1]
+      
+      new_row <- data.frame(x = rnorm(1), y = rnorm(1))
+    
+      for (n in 1:(flor + 1)){
+      
+        dataopt<- minvarpf(get(paste("data", n, sep = "")))
+        assign(as.character(paste("dataopt", as.character(n), sep="")), dataopt)
+      
+        if (is.function(updateProgress)) {
+          text <- paste0("x:", round(new_row$x, 2), " y:", round(new_row$y, 2))
+          updateProgress(detail = text)
+        }
+        
+        
+        finaldata <- cbind(finaldata,dataopt)
+      }
+      return(finaldata)
+### End of Dataspliting function #################################
+    }
+  
+    
     
 ### call the portfolios according to the user's input ##########################
     
@@ -1456,6 +1512,21 @@ server <- function(input, output, session) {
 ##### short bond only ##########################################################
 
     output$ourPF <- renderPlot({
+      
+      # Create the Progress object
+      progress <- shiny::Progress$new()
+      progress$set(message = "Calculating Optimal Portfolio", value = 0)
+      # Close the progress when this reactive exits (even if there's an error)
+      on.exit(progress$close())
+      
+      updateProgress <- function(value = NULL, detail = NULL) {
+        if (is.null(value)) {
+          value <- progress$getValue()
+          value <- value + (progress$getMax() - value) / 3
+        }
+        progress$set(value = value, detail = detail)
+      }
+        
       if (input$rpref2 == 1 && input$inv_horizon <= 5) {
   
         plot.ts(shortbond)
@@ -1483,34 +1554,7 @@ server <- function(input, output, session) {
           (input$rpref2 == 2 && input$inv_horizon > 10)) {
       
 ####### split the required input df into sub-df's to make them optimizable #####
-        flor <- floor(ncol(newData()) / 15)
-        remaining <- ncol(newData()) - 15 * flor
-        lastdata <- flor + 1
-        
-        for (n in 1:flor){
-          
-          data.n  <- newData()[((n - 1) * 15 + 1):(n * 15)]
-          assign(as.character(paste("data", as.character(n), sep = "")), data.n)
-        }
-        
-        data.lastdata <- newData()[(flor * 15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor + 1)),
-                                  sep="")),
-               data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[, -1]
-        
-        for (n in 1:(flor + 1)){
-          
-          dataopt<- minvarpf(get(paste("data", n, sep = "")))
-          assign(as.character(paste("dataopt",
-                                    as.character(n),
-                                    sep="")),
-                 dataopt)
-          
-          finaldata <- cbind(finaldata,dataopt)
-        }
-        
+        finaldata <- datasplit(newData(),updateProgress)
         minimumvariancepf <- minvarpf(finaldata)
        
 ####### include the performance plot in Shiny ##################################
@@ -1522,30 +1566,7 @@ server <- function(input, output, session) {
 
       if (input$rpref2 == 1 && input$inv_horizon > 10) {
         
-        flor <- floor(ncol(newData()) / 15)
-        remaining <- ncol(newData()) - 15 * flor
-        lastdata <- flor + 1
-        
-        for (n in 1:flor){
-          
-          data.n  <- newData()[((n - 1) * 15 + 1):(n * 15)]
-          assign(as.character(paste("data",
-                                    as.character(n),
-                                    sep="")),
-                 data.n)
-          }
-        
-        data.lastdata <- newData()[(flor * 15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
-        
-        for (n in 1:(flor+1)){
-          
-          dataopt<- optimpf(get(paste("data",n,sep="")))
-          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
-          finaldata <- cbind(finaldata,dataopt)
-        }
+        finaldata <- datasplit(newData(),updateProgress)
         
         finalpf <- optimpf(finaldata)
         
@@ -1564,27 +1585,7 @@ server <- function(input, output, session) {
          (input$rpref2 == 3 && input$inv_horizon > 10) ||
          (input$rpref2 == 4 && input$inv_horizon > 10)) {
         
-        flor <- floor(ncol(newData()) / 15)
-        remaining <- ncol(newData()) - 15 * flor
-        lastdata <- flor + 1
-        
-        for (n in 1:flor){
-          
-          data.n  <- newData()[((n-1)*15+1):(n*15)]
-          assign(as.character(paste("data", as.character(n),sep="")),data.n)
-        }
-        
-        data.lastdata <- newData()[(flor*15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
-        
-        for (n in 1:(flor+1)){
-          
-          dataopt<- optimpf(get(paste("data",n,sep="")))
-          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
-          finaldata <- cbind(finaldata,dataopt)
-        }
+        finaldata <- datasplit(newData(),updateProgress)
         
         finalpf <- optimpf(finaldata)
         
@@ -1602,27 +1603,7 @@ server <- function(input, output, session) {
          (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
         
-        flor <- floor(ncol(newData()) / 15)
-        remaining <- ncol(newData()) - 15 * flor
-        lastdata <- flor + 1
-        
-        for (n in 1:flor){
-          
-          data.n  <- newData()[((n-1)*15+1):(n*15)]
-          assign(as.character(paste("data", as.character(n),sep="")),data.n)
-        }
-        
-        data.lastdata <- newData()[(flor*15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
-        
-        for (n in 1:(flor+1)){
-          
-          dataopt<- optimpf(get(paste("data",n,sep="")))
-          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
-          finaldata <- cbind(finaldata,dataopt)
-        }
+        finaldata <- datasplit(newData(),updateProgress)
         
         finalpf <- optimpf(finaldata)
         
@@ -1639,33 +1620,12 @@ server <- function(input, output, session) {
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
           (input$rpref2 == 7 && input$inv_horizon > 10)) {
         
-        flor <- floor(ncol(newData()) / 15)
-        remaining <- ncol(newData()) - 15 * flor
-        lastdata <- flor + 1
-        
-        for (n in 1:flor){
-          
-          data.n  <- newData()[((n-1)*15+1):(n*15)]
-          assign(as.character(paste("data", as.character(n),sep="")),data.n)
-        }
-        
-        data.lastdata <- newData()[(flor*15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
-        
-        for (n in 1:(flor + 1)){
-          
-          dataopt<- optimpf(get(paste("data", n, sep = "")))
-          assign(as.character(paste("dataopt", as.character(n), sep="")),dataopt)
-          finaldata <- cbind(finaldata,dataopt)
-        }
+        finaldata <- datasplit(newData(),updateProgress)
         
         finalpf <- optimpf(finaldata)
         plot.ts(as.matrix(finalpf))
         title("Pure Equity")
       }
-      
     })
     
 ### PDF Download Handler - option for the user to downloas her personal report #
