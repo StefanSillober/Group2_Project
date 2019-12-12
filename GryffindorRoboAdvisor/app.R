@@ -376,13 +376,22 @@ body <- dashboardBody(
                                inline = TRUE),
                   
                   downloadButton('downloadReport'),
-                    actionBttn(
-                        inputId = "button6",
-                        label = "Back",
-                        style = "unite", 
-                        color = "danger"
-                    )
-                  )
+                  ),
+                fluidRow( # Dynamic valueBoxes
+                  valueBoxOutput("expectedValue"),
+                  valueBoxOutput("yearlygain"),
+                  valueBoxOutput("maxdrawdown"),
+                  valueBoxOutput("std"),
+                  valueBoxOutput("sharpe"),
+                  valueBoxOutput("equity")
+                ),
+                
+                actionBttn(
+                  inputId = "button6",
+                  label = "Back",
+                  style = "unite", 
+                  color = "danger"
+                )
 
         )
 ######### end of fourth tab item ###############################################
@@ -692,7 +701,8 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
         
-        source("robodata.R")
+        #source("robodata.R")
+        load("datas.RData")
         
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -1493,7 +1503,7 @@ server <- function(input, output, session) {
         assign(as.character(paste("dataopt", as.character(n), sep="")), dataopt)
       
         if (is.function(updateProgress)) {
-          text <- paste0("x:", round(new_row$x, 2), " y:", round(new_row$y, 2))
+          text <- "Pleas don't turn off your Computer"
           updateProgress(detail = text)
         }
         
@@ -1528,8 +1538,9 @@ server <- function(input, output, session) {
       }
         
       if (input$rpref2 == 1 && input$inv_horizon <= 5) {
-  
-        plot.ts(shortbond)
+        
+        portfoliofinal <<- shortbond
+        plot.ts(portfoliofinal)
         title("short bond")
         summary(shortbond)
       }
@@ -1540,9 +1551,10 @@ server <- function(input, output, session) {
           (input$rpref2 == 1 && input$inv_horizon > 5 &&
            input$inv_horizon <= 10)) {
         
-        plot.ts(longbond)
+        portfoliofinal <<- longbond
+        equityinvestment <<- 0
+        plot.ts(portfoliofinal)
         title("long bond")
-        summary(longbond)
       }
       
 ##### minimum variance PF ######################################################
@@ -1555,11 +1567,13 @@ server <- function(input, output, session) {
       
 ####### split the required input df into sub-df's to make them optimizable #####
         finaldata <- datasplit(newData(),updateProgress)
-        minimumvariancepf <- minvarpf(finaldata)
-       
+        portfoliofinal <<- minvarpf(finaldata)
+        equityinvestment <<- 0
+      
 ####### include the performance plot in Shiny ##################################
-        plot.ts(minimumvariancepf)
+        plot.ts(portfoliofinal)
         title("minimum variance portfolio")
+        
         }
     
 ###### Equity + longbond overweight bond #######################################
@@ -1571,10 +1585,11 @@ server <- function(input, output, session) {
         finalpf <- optimpf(finaldata)
         
         longbondindexed <- indexpf(as.data.frame(longbond))
-        equitylongbondpf <- equityanddeptpf(finalpf, longbondindexed, 0.2)
+        portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.2)
         
-        plot.ts(as.matrix(equitylongbondpf))
+        plot.ts(as.matrix(portfoliofinal))
         title("Equity-Longbond Bond overweight")
+        equityinvestment <<- 0.2
       }
       
       ######################### risk parity ############################
@@ -1592,9 +1607,9 @@ server <- function(input, output, session) {
         longbonddf <- as.data.frame(longbond)
         commoditydf <- as.data.frame(commodities)
         
-        riskparpf <- riskparitypf(finalpf, longbonddf, commoditydf)
-        
-        plot.ts(riskparpf)
+        portfoliofinal <<- riskparitypf(finalpf, longbonddf, commoditydf)
+        equityinvestment <<- 0
+        plot.ts(portfoliofinal)
         title("Risk Parity")
       }
       
@@ -1608,9 +1623,10 @@ server <- function(input, output, session) {
         finalpf <- optimpf(finaldata)
         
         longbondindexed <- indexpf(as.data.frame(longbond))
-        muchequitybondpf <- equityanddeptpf(finalpf, longbondindexed, 0.8)
+        portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.8)
+        equityinvestment <<- 0.8
         
-        plot.ts(as.matrix(muchequitybondpf))
+        plot.ts(as.matrix(portfoliofinal))
         title("Equity-Bond Equity overweight")
       }
       
@@ -1622,8 +1638,9 @@ server <- function(input, output, session) {
         
         finaldata <- datasplit(newData(),updateProgress)
         
-        finalpf <- optimpf(finaldata)
-        plot.ts(as.matrix(finalpf))
+        portfoliofinal <<- optimpf(finaldata)
+        equityinvestment <<- 1
+        plot.ts(as.matrix(portfoliofinal))
         title("Pure Equity")
       }
     })
@@ -1671,6 +1688,67 @@ server <- function(input, output, session) {
 #### ValueBoxes ################################################################
 ################################################################################
 
+### Boxes for Final Output Page ################################################
+    
+    output$expectedValue <- renderValueBox({
+      valueBox(
+        paste0(round((1+(averagereturn(portfoliofinal)*input$inv_horizon)*input$initial_wealth)), "$"),
+        paste0("Expected wealth after ", input$inv_horizon, "years" ),
+        icon = icon("hand-holding-usd"),
+        color = "blue"
+      )
+    })
+    
+    output$yearlygain <- renderValueBox({
+      valueBox(
+        paste0(round((averagereturn(portfoliofinal)*100)), "%"),
+        "Expected yearly gain",
+        icon = icon("chart-line"),
+        color = "green"
+      )
+    })
+    
+    output$maxdrawdown <- renderValueBox({
+      valueBox(
+        paste0(round((maxdrawdown(portfoliofinal)*100)), "%"),
+        "Maxdrawdown",
+        icon = icon("greater-than"),
+        color = "red"
+      )
+    })
+    
+    output$std <- renderValueBox({
+      valueBox(
+        paste0(round((yearlystd(portfoliofinal)*100)), "%"),
+        "Standarddeviation",
+        icon = icon("square-root-alt"),
+        color = "yellow"
+      )
+    })
+    
+    
+    output$sharpe <- renderValueBox({
+      valueBox(
+        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)),2),
+        "Sharpe Ratio",
+        icon = icon("hourglass-half"),
+        color = "orange"
+      )
+    })
+    
+    output$equity <- renderValueBox({
+      valueBox(
+        paste0(round(equityinvestment*100), "%"),
+        "Invested in Equity",
+        icon = icon("hand-holding-usd"),
+        color = "purple"
+      )
+    })
+    
+    
+################################################################################
+    
+    
     output$horizonBox <- renderValueBox({
         valueBox(
             paste0(input$inv_horizon, " years"),
