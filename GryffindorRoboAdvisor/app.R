@@ -18,6 +18,7 @@ library(rgdal)
 #install.packages("tinytex")
 #tinytex::install_tinytex()
 library(markdown)
+library(rmarkdown)
 
 header <- dashboardHeader(
     title = shinyDashboardLogoDIY(boldText =  tagList(shiny::icon("robot"),
@@ -480,323 +481,521 @@ server <- function(input, output, session) {
           })
 
 
-          observeEvent(input$stop, {
-            session1$timer<- reactiveTimer(Inf)
-            })
+        observeEvent(input$stop, {
+          session1$timer<- reactiveTimer(Inf)
+          })
 
 
 ## when reset button is pressed, set everything to original values plus set seed
-          observeEvent(input$reset, {
+        observeEvent(input$reset, {
             
+          sim$resetindicator <- 0
+          sim$numb <- c(0)
+          sim$data <- c(0)
+          })
+
+
+#### main plot output - histogram first tab ####################################
+################################################################################
+        
+        output$distPlot <- renderPlot({
+          if (sum(sim$data) == 0) {
+            return() # no plot if reset everything was reset
+            
+          } else if (length(sim$data) == 300) {
+            # automatically reset after # draws to exit
             sim$resetindicator <- 0
             sim$numb <- c(0)
             sim$data <- c(0)
-            })
-
-
-#### main plot output###########################################################
-################################################################################
-          output$distPlot <- renderPlot({
+            #session1$timer<-reactiveTimer(Inf)
+          }
+          
+          hist(
+            sim$data[sim$data < input$initial_wealth * 5],
+            breaks = seq(
+              from = 0,
+              to = (input$initial_wealth * 5),
+              by = (input$initial_wealth * 5) / 30
+            ),
             
-            if (sum(sim$data) == 0) {
-              return() # no plot if reset everything was reset
-              
-            } else if (length(sim$data) == 300) {
-              # automatically reset after # draws to exit
-              sim$resetindicator <- 0
-              sim$numb <- c(0)
-              sim$data <- c(0)
-              #session1$timer<-reactiveTimer(Inf)
+            xlim = c(0, input$initial_wealth * 5),
+            ylim = c(0, 100),
+            xlab = "Terminal Wealth",
+            main = "Potential Evolvement of Wealth"
+          )
+          
+          grid()
+          
+          points(
+            x = input$initial_wealth,
+            y = 0,
+            pch = 24,
+            bg = "grey",
+            cex = 2
+          )
+          
+######## include a vertical line indicating the mean ###########################
+          abline(
+            v = mean(sim$data),
+            col = "blue",
+            lwd = 2,
+            lty = 2
+          )
+          
+######## include a vertical line indicating the 90% percentile #################
+          abline(
+            v = sim$data[order(sim$data)[length(sim$data) * 0.9]],
+            col = "green",
+            lwd = 2,
+            lty = 2
+          )
+          
+######## inlude a vertical line indicating the 10% percentile ##################
+          abline(
+            v = sim$data[order(sim$data)[length(sim$data) * 0.1]],
+            col = "red",
+            lwd = 2,
+            lty = 2
+          )
+          
+          legend(
+            "topright",
+            legend = c(
+              "90 out of 100 boundary",
+              "10 out of 100 boundary",
+              "Average Terminal Wealth",
+              "Initial Investment"
+            ),
+            
+            col = c("green",
+                    "red",
+                    "blue",
+                    "grey"),
+            
+            lty = c(2, 2, 2, NA),
+            pch = c(NA, NA, NA, 24),
+            box.lty = 0,
+            cex = 1.2
+          )
+        })
+        
+### end of main plot - histogram first tab #####################################
+################################################################################
+        
+### start of main plot - histogram second tab ##################################
+################################################################################
+        
+        output$distPlotFinish <- renderPlot({
+          sim$terminal_wealth <- input$initial_wealth *
+            exp((drift[input$rpref2] - (1 / 2) *
+                   (diffusion[input$rpref2]) ^ 2) *
+                  input$inv_horizon + diffusion[input$rpref2] *
+                  sqrt(input$inv_horizon) * rnorm(1:draws)
+            )
+          
+          hist(
+            sim$terminal_wealth[sim$terminal_wealth >= 0 &
+                                  sim$terminal_wealth <
+                                  input$initial_wealth * 5],
+            breaks = seq(
+              from = 0,
+              to = (input$initial_wealth * 5),
+              by = (input$initial_wealth * 5) / 30
+            ),
+            xlim = c(0, input$initial_wealth * 5),
+            xlab = "Terminal Wealth",
+            main = "Potential Evolvement of Wealth"
+          )
+          grid()
+          
+          points(
+            x = input$initial_wealth,
+            y = 0,
+            pch = 24,
+            bg = "grey",
+            cex = 2
+          )
+
+######## include a vertical line indicating the mean ###########################
+          abline(
+            v = mean(sim$terminal_wealth),
+            col = "blue",
+            lwd = 2,
+            lty = 2
+          )
+          
+######## include a vertical line indicating the 90% percentile #################
+          abline(
+            v = sim$terminal_wealth[order(sim$terminal_wealth)[draws * 0.9]],
+            col = "green",
+            lwd = 2,
+            lty = 2
+          )
+          
+######## include a vertical line indicating the 10% percentile #################
+          abline(
+            v = sim$terminal_wealth[order(sim$terminal_wealth)[draws * 0.1]],
+            col = "red",
+            lwd = 2,
+            lty = 2
+          )
+          
+          legend(
+            "topright",
+            legend = c(
+              "90 out of 100 boundary",
+              "10 out of 100 boundary",
+              "Average Terminal Wealth",
+              "Initial Investment"
+            ),
+            
+            col = c("green", "red", "blue", "grey"),
+            lty = c(2, 2, 2, NA),
+            pch = c(NA, NA, NA, 24),
+            box.lty = 0,
+            cex = 1.2
+          )
+        })
+############ end of mainplot - histogram second tab ############################
+################################################################################
+          
+# Set the selected input of the first slider equal to the second et vice versa
+        observe({
+          updateSliderInput(session, "rpref2", value = input$rpref)
+          })
+          
+        observe({
+          updateSliderInput(session, "rpref", value = input$rpref2)
+          })
+    
+
+
+############ Country and Industry Subsetting ###################################
+################################################################################
+        
+######## To make the code better readable, the webscrapping process is placed #
+######## in a seperate file ###################################################
+        
+        source("robodata.R")
+        
+####### The output file of the webscraping script is called "OVR" and contains #
+####### all available information in one data frame. This is split up into the #
+####### dates, the commodity index, the two debt indices to be left with the ###
+####### different equity indices. ##############################################
+        
+        dates <- ovr[, 1]
+        commodities <- ovr[, 56]
+        longbond <- ovr[, 57]
+        shortbond <- ovr[, 58]
+        data <- ovr[, -c(1, 56:58)]
+        
+####### in order to make the data frame subsettable, it must be in an reactive #
+####### enviornment. ###########################################################
+        
+        makeReactiveBinding("data")
+        
+####### show the subsetted data frame in the app ###############################
+        output$table <- renderTable({
+          
+######### due to syntax of reactive datas, the subsetting has to happen within #
+######### as well as outside the reactive enviornment ##########################
+          
+          data <- ovr[, -c(1, 56:58)]
+          
+######### Subsetting by region - the user chooses the region(s) he or she ######
+######### does not want to invest in ###########################################
+          if (!("NorthAmerica" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("US", names(data), value = TRUE))]
+            }
+          
+          if (!("Europe" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("EU", names(data), value = TRUE))]
+            }
+          
+          if (!("Asia" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("AS", names(data), value = TRUE))]
+            }
+          
+          if (!("Africa" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Africa", names(data), value = TRUE))]
+            }
+          
+          if (!("Australia" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Australia", names(data),
+                                          value = TRUE))]
+            }
+          
+          if (!("Latinamerica" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Latinamerica", names(data),
+                                          value = TRUE))]
+            }
+          
+          # if (!("Antarctica" %in% input$mymap_groups)) {
+          #   data <- data[ , -which(names(data) %in%
+          #                            grep("Antarctica", names(data),
+          #                                 value = TRUE))]
+          #   }
+      
+
+######### Subsetting by industry - the user chooses the indutries he or she ####
+######### does not want to invest in ###########################################
+          
+          if ("banks" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("banks", names(data), value = TRUE))]
+            }
+          
+          if ("resources" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("resources", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("chemicals" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("chemicals", names(data),
+                                          value = TRUE))]
             }
 
-        hist(sim$data[sim$data < input$initial_wealth * 5],
-             breaks = seq(from = 0, to = (input$initial_wealth * 5),
-                          by = (input$initial_wealth * 5) / 30),
-             xlim = c(0, input$initial_wealth * 5),
-             ylim = c(0, 100),
-             xlab = "Terminal Wealth",
-             main = "Potential Evolvement of Wealth")
-        
-        grid()
-        
-        points(x = input$initial_wealth,
-               y = 0,
-               pch = 24,
-               bg = "grey",
-               cex = 2)
-        
-######## include a vertical line indicating the mean ###########################        
-        abline(v = mean(sim$data),
-               col = "blue",
-               lwd = 2,
-               lty = 2)
-
-######## include a vertical line indicating the 90% percentile #################        
-        abline(v = sim$data[order(sim$data)[length(sim$data) * 0.9]],
-               col = "green",
-               lwd = 2,
-               lty = 2)
-        
-        abline(v = sim$data[order(sim$data)[length(sim$data) * 0.1]],
-               col = "red",
-               lwd = 2,
-               lty = 2)
-
-        legend("topright", legend = c("90 out of 100 boundary", "10 out of 100 boundary", "Average Terminal Wealth", "Initial Investment"),
-               col=c("green", "red", "blue", "grey"), lty = c(2, 2, 2, NA), pch = c(NA, NA, NA, 24), box.lty=0, cex = 1.2)
-    })
-
-    ## main plot output Finish
-    output$distPlotFinish <- renderPlot({
-        sim$terminal_wealth <- input$initial_wealth * exp((drift[input$rpref2]-(1/2)*(diffusion[input$rpref2])^2)*input$inv_horizon + diffusion[input$rpref2]*sqrt(input$inv_horizon)*rnorm(1:draws))
-
-        hist(sim$terminal_wealth[sim$terminal_wealth >= 0 & sim$terminal_wealth < input$initial_wealth*5],
-             breaks = seq(from = 0, to = (input$initial_wealth*5), by = (input$initial_wealth*5)/30),
-             xlim = c(0,input$initial_wealth*5),
-             xlab = "Terminal Wealth", main = "Potential Evolvement of Wealth")
-        grid()
-        #abline(v = input$initial_wealth, col = "blue", lwd = 2)
-        points(x = input$initial_wealth, y = 0, pch = 24, bg = "grey", cex = 2)
-        abline(v = mean(sim$terminal_wealth), col = "blue", lwd = 2, lty = 2)
-
-        abline(v = sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.9]], col = "green", lwd = 2, lty = 2)
-        abline(v = sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.1]], col = "red", lwd = 2, lty = 2)
-
-        legend("topright", legend = c("90 out of 100 boundary", "10 out of 100 boundary", "Average Terminal Wealth", "Initial Investment"),
-               col=c("green", "red", "blue", "grey"), lty = c(2, 2, 2, NA), pch = c(NA, NA, NA, 24), box.lty=0, cex = 1.2)
-    })
+          if ("construction" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("construction", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("financials" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("financials", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("food" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("food", names(data), value = TRUE))]
+            }
+          
+          if ("health" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("health", names(data), value = TRUE))]
+            }
+          
+          if ("industrial" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("industrial", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("insurance" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("insurance", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("energy" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("energy", names(data), value = TRUE))]
+            }
+          
+          if ("personal" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("personal", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("retail" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("retail", names(data), value = TRUE))]
+            }
+          
+          if ("tech" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("tech", names(data), value = TRUE))]
+            }
+          
+          if ("telecom" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("telecom", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("travel" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("travel", names(data), value = TRUE))]
+            }
+          
+          if ("utilities" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("utilities", names(data),
+                                          value = TRUE))]
+            }
+          
+          data
+          
+######### End of subsetting, where the data is used for the table ##############
+################################################################################
+          })
     
     
-    # Set the selected input of the first slider equal to the second (but not the other way round)
-    observe({
-      updateSliderInput(session, "rpref2", value = input$rpref)
-    })
-    
-    observe({
-      updateSliderInput(session, "rpref", value = input$rpref2)
-    })
-    
-    
-    
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-                    ##---Country and Industry Subsetting---##
+####### Actual subsetting, where the data is then used for the PF building #####
+################################################################################
+        
+####### Get webscraped Data (the ovr file from the scrapping script) ###########
+        
+        data <- ovr[, -c(1, 56:58)]
 
-    source("robodata.R")
-    
-    #load("datas.RData")
-    
-    dates <- ovr[, 1]
-    commodities <- ovr[, 56]
-    longbond <- ovr[, 57]
-    shortbond <- ovr[, 58]
-    data <- ovr[, -c(1, 56:58)]
+####### use the data frame in a reactive enviornment ###########################
+        
+        newData <- reactive({
+######### Again, the data has to be used within and outside the reactive #######
+######### enviornment. #########################################################
+          data <- ovr[, -c(1, 56:58)]
 
-    makeReactiveBinding("data")
-    output$table <- renderTable({
-
-      data <- ovr[, -c(1, 56:58)]
-
-        # Subsetting by Industry
-        if (!("NorthAmerica" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
-        }
-
-        if (!("Europe" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("EU", names(data), value = TRUE))]
-        }
+######### Subsetting by region - the user selects the region he or she does not 
+######### want to be invested in ###############################################
+          
+          if (!("NorthAmerica" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("US", names(data), value = TRUE))]
+            }
+          
+          if (!("Europe" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("EU", names(data), value = TRUE))]
+            }
+          
+          if (!("Asia" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("AS", names(data), value = TRUE))]
+            }
+          
+          if (!("Africa" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Africa", names(data), value = TRUE))]
+            }
+          
+          if (!("Australia" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Australia", names(data),
+                                          value = TRUE))]
+            }
+          
+          if (!("Latinamerica" %in% input$mymap_groups)) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("Latinamerica", names(data),
+                                          value = TRUE))]
+            }
+          
+          # if (!("Antarctica" %in% input$mymap_groups)) {
+          #   data <- data[ , -which(names(data) %in%
+          #                            grep("Antarctica", names(data),
+          #                                 value = TRUE))]
+          #   }
       
-        if (!("Asia" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("AS", names(data), value = TRUE))]
-        }
       
-        if (!("Africa" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("Africa", names(data), value = TRUE))]
-        }
-      
-        if (!("Australia" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("Australia", names(data), value = TRUE))]
-        }
-        
-        if (!("Latinamerica" %in% input$mymap_groups)) {
-          data <- data[ , -which(names(data) %in% grep("Latinamerica", names(data), value = TRUE))]
-        }
-        
-        # if (!("Antarctica" %in% input$mymap_groups)) {
-        #   data <- data[ , -which(names(data) %in% grep("Antarctica", names(data), value = TRUE))]
-        # }
-      
-        # Subsetting by Industry
-        if ("banks" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("banks", names(data), value = TRUE))]
-        }
-
-        if ("resources" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("resources", names(data), value = TRUE))]
-        }
-
-        if ("chemicals" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("chemicals", names(data), value = TRUE))]
-        }
-
-        if ("construction" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("construction", names(data), value = TRUE))]
-        }
-      
-        if ("financials" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("financials", names(data), value = TRUE))]
-        }
-        
-        if ("food" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("food", names(data), value = TRUE))]
-        }
-        
-        if ("health" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("health", names(data), value = TRUE))]
-        }
-        
-        if ("industrial" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("industrial", names(data), value = TRUE))]
-        }
-        
-        if ("insurance" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("insurance", names(data), value = TRUE))]
-        }
-        
-        if ("energy" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("energy", names(data), value = TRUE))]
-        }
-        
-        if ("personal" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("personal", names(data), value = TRUE))]
-        }
-        
-        if ("retail" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("retail", names(data), value = TRUE))]
-        }
-        
-        if ("tech" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("tech", names(data), value = TRUE))]
-        }
-        
-        if ("telecom" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("telecom", names(data), value = TRUE))]
-        }
-        
-        if ("travel" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("travel", names(data), value = TRUE))]
-        }
-        
-        if ("utilities" %in% input$industry1) {
-          data <- data[ , -which(names(data) %in% grep("utilities", names(data), value = TRUE))]
-        }
-
-      data
-    })
-    
-    
-    #### Actual subsetting
-    #Get webscraped Data
-    data <- ovr[, -c(1, 56:58)]
-    newData <- reactive({
-      data <- ovr[, -c(1, 56:58)]
-
-      data <- ovr[, -c(1, 56:58)]
-      # Subsetting by Industry
-      if (!("NorthAmerica" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("US", names(data), value = TRUE))]
-      }
-      
-      if (!("Europe" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("EU", names(data), value = TRUE))]
-      }
-      
-      if (!("Asia" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("AS", names(data), value = TRUE))]
-      }
-      
-      if (!("Africa" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("Africa", names(data), value = TRUE))]
-      }
-      
-      if (!("Australia" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("Australia", names(data), value = TRUE))]
-      }
-      
-      if (!("Latinamerica" %in% input$mymap_groups)) {
-        data <- data[ , -which(names(data) %in% grep("Latinamerica", names(data), value = TRUE))]
-      }
-      
-      # if (!("Antarctica" %in% input$mymap_groups)) {
-      #   data <- data[ , -which(names(data) %in% grep("Antarctica", names(data), value = TRUE))]
-      # }
-      
-      # Subsetting by Industry
-      if ("banks" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("banks", names(data), value = TRUE))]
-      }
-      
-      if ("resources" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("resources", names(data), value = TRUE))]
-      }
-      
-      if ("chemicals" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("chemicals", names(data), value = TRUE))]
-      }
-      
-      if ("construction" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("construction", names(data), value = TRUE))]
-      }
-      
-      if ("financials" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("financials", names(data), value = TRUE))]
-      }
-      
-      if ("food" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("food", names(data), value = TRUE))]
-      }
-      
-      if ("health" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("health", names(data), value = TRUE))]
-      }
-      
-      if ("industrial" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("industrial", names(data), value = TRUE))]
-      }
-      
-      if ("insurance" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("insurance", names(data), value = TRUE))]
-      }
-      
-      if ("energy" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("energy", names(data), value = TRUE))]
-      }
-      
-      if ("personal" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("personal", names(data), value = TRUE))]
-      }
-      
-      if ("retail" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("retail", names(data), value = TRUE))]
-      }
-      
-      if ("tech" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("tech", names(data), value = TRUE))]
-      }
-      
-      if ("telecom" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("telecom", names(data), value = TRUE))]
-      }
-      
-      if ("travel" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("travel", names(data), value = TRUE))]
-      }
-      
-      if ("utilities" %in% input$industry1) {
-        data <- data[ , -which(names(data) %in% grep("utilities", names(data), value = TRUE))]
-      }
-      
-      data
-    })
+######### Subsetting by industry - the user chooses the indutries he or she ####
+######### does not want to invest in ###########################################
+          
+          if ("banks" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("banks", names(data), value = TRUE))]
+            }
+          
+          if ("resources" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("resources", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("chemicals" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("chemicals", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("construction" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("construction", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("financials" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("financials", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("food" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("food", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("health" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("health", names(data), value = TRUE))]
+            }
+          
+          if ("industrial" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("industrial", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("insurance" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("insurance", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("energy" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("energy", names(data), value = TRUE))]
+            }
+          
+          if ("personal" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("personal", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("retail" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("retail", names(data), value = TRUE))]
+            }
+          
+          if ("tech" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("tech", names(data), value = TRUE))]
+            }
+          
+          if ("telecom" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("telecom", names(data),
+                                          value = TRUE))]
+            }
+          
+          if ("travel" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("travel", names(data), value = TRUE))]
+            }
+          
+          if ("utilities" %in% input$industry1) {
+            data <- data[ , -which(names(data) %in%
+                                     grep("utilities", names(data),
+                                          value = TRUE))]
+            }
+          
+          data
+          
+######### End of subsetting, where the data is used for PF building ############
+################################################################################
+          })
 
     
     # output$testgraph <- renderPlot({
@@ -810,44 +1009,65 @@ server <- function(input, output, session) {
     # })
     
 
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-                            ##---Map---##
+####### Initiation of the map, where the user can (de)select regions ###########
+################################################################################
     
-    # ------------------------ 
-    # Read multiple shape files with standardized names
-    # all available countries are grouped by continent
+####### Read multiple shape files with standardized names ######################
+####### all available countries are grouped by continent #######################
+        
+        region <- c("africa",
+                    "antarctica",
+                    "asia", "europe",
+                    "northamerica",
+                    "oceania",
+                    "latinamerica")
+        
+        groups <- c("Africa",
+                    "Antarctica",
+                    "Asia",
+                    "Europe",
+                    "NorthAmerica",
+                    "Oceania",
+                    "Latinamerica")
+        
+        colors <- c("red", "blue", "green", "yellow",
+                    "purple", "turquoise", "grey")
+        
+        for (i in region) {
+          filestest.i <- geojson_read(as.character(
+            paste(getwd(),
+                  "Map",
+                  paste(i,
+                        "geo.json",
+                        sep = "."),
+                  sep = "/")),
+            what = "sp")
+          
+          assign(as.character(paste("files", i, sep = ".")), filestest.i)
+        }
+        
+####### remove the "dummy"-file ################################################        
+        rm(filestest.i)
     
-    # RV <- reactiveValues(Clicks = list())
-    
-    region <- c("africa", "antarctica", "asia", "europe", "northamerica", "oceania", "latinamerica")
-    groups <- c("Africa", "Antarctica", "Asia", "Europe", "NorthAmerica", "Oceania", "Latinamerica")
-    colors <- c("red", "blue", "green", "yellow", "purple", "turquoise", "grey")
-    
-    for (i in region) {
-      filestest.i <- geojson_read(as.character(paste(getwd(), "Map", paste(i, "geo.json", sep = "."), sep = "/")), what = "sp")
-      assign(as.character(paste("files", i, sep = ".")), filestest.i)
-    }
-    
-    rm(filestest.i)
-    
-    # ------------------------
-    # initiate the map built with leaflet
-    
-    foundmap <- leaflet() %>%
+  
+####### initiate the map built with leaflet ####################################
+################################################################################
+        
+        foundmap <- leaflet() %>%
         
         setView(lng = 0, lat = 30, zoom = 2) %>%
         
         addProviderTiles(providers$Stamen.TonerLite,
                          options = providerTileOptions(noWrap = TRUE))
-    #---------------------------------
-    # add multiple the several layers to combine the single polygons 
     
-    for (reg.N in 1:length(region)) {
-        reg <- region[reg.N] # gives the region "code"
-        tmp <- get(paste("files", reg, sep = ".")) #gives the file name
-        
-        
-        foundmap <- foundmap %>%
+
+####### add multiple layers to combine the single polygons #####################
+    
+        for (reg.N in 1:length(region)) {
+          reg <- region[reg.N] # gives the region "code"
+          tmp <- get(paste("files", reg, sep = ".")) #gives the file name
+          
+          foundmap <- foundmap %>%
             addPolygons(data = tmp, 
                         fillColor = colors[reg.N], 
                         color = "#000000", 
@@ -857,207 +1077,229 @@ server <- function(input, output, session) {
                         stroke = TRUE,
                         weight = 1.5, 
                         smoothFactor = 0.2,
-                        # highlight = highlightOptions(
-                        #         weight = 1,
-                        #         color = "#000000",
-                        #         dashArray = "3",
-                        #         fillOpacity = 0.8,
-                        #         bringToFront = TRUE),
-                        
                         label = paste(groups[reg.N]),
                         group = paste(groups[reg.N])
-            ) 
-    }
+                        )
+          }
     
-    #---------------------------------
-    # set up layer controls
-    
-    foundmap <- foundmap %>%
-        addLayersControl(overlayGroups = groups,
-                         options = layersControlOptions(collapsed = FALSE))
+####### set up layer controls to make regions selectable #######################
+        
+        foundmap <- foundmap %>%
+          addLayersControl(overlayGroups = groups,
+                           options = layersControlOptions(collapsed = FALSE))
 
 
-    # ------------------------
-    # integrate the map into shiny
-    
-    output$mymap <- renderLeaflet({foundmap})
-    
-    
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-    ##---Portfolioevaluation functions
+####### integrate the map into shiny ###########################################
+        
+        output$mymap <- renderLeaflet({foundmap})
     
     
-    # Average return - takes one column as an input
-    averagereturn <- function(backtest){
-      portfoliologreturns <- data.frame()
+
+####### Portfolio evaluation functions #########################################
+################################################################################
+    
+    
+####### Average return - takes one column as an input ##########################
+    
+        averagereturn <- function(backtest) {
+          portfoliologreturns <- data.frame()
       
-      for(r in 1:(nrow(backtest) - 1)){
-        portfoliologreturns[r, 1] <- log(backtest[r + 1, 1]/backtest[r, 1])
-      }
-      
-      averagereturn <- mean(portfoliologreturns[, 1]) * 252
-      return(averagereturn)
-    }
+          for (r in 1:(nrow(backtest) - 1)) {
+            portfoliologreturns[r, 1] <- log(backtest[r + 1, 1]/backtest[r, 1])
+            }
+          
+          averagereturn <- mean(portfoliologreturns[, 1]) * 252
+          return(averagereturn)
+          
+          }
     
-    # Calculate max drawdown - takes one column as an input
-    maxdrawdown <- function(backtest){
-      trailingmaxdrawdown = data.frame()
-      
-      for(r in 1:(nrow(backtest) - 1)){
-        trailingmaxdrawdown[r, 1] <- min(tail(backtest[, 1], -r)) /
+####### Calculate max drawdown - takes one column as an input ##################
+        
+        maxdrawdown <- function(backtest){
+          trailingmaxdrawdown <- data.frame()
+          
+          for (r in 1:(nrow(backtest) - 1)){
+            trailingmaxdrawdown[r, 1] <- min(tail(backtest[, 1], -r)) /
                                               backtest[r, ] - 1
-      }
-      
-      maxdrawdown <- min(trailingmaxdrawdown[, 1])
-      return(maxdrawdown)
-    }
-    
-    # Calculate annual standard deviation
-    yearlystd <- function(backtest){
-      portfoliologreturns <- data.frame()
-      
-      for(r in 1:(nrow(backtest) - 1)){
-        portfoliologreturns[r, 1] <- log(backtest[r + 1, 1] / backtest[r, 1])
-      }
-      
-      yearlystd <- sd(portfoliologreturns[, 1]) * sqrt(252)
-      return(yearlystd)
-    }
-    
-    # Calculate sharpe Ratio for maximization
-    sharpe <- function(expectedreturn, covmatrix, par){
-      
-      #optim, used, later needs the parameters as vector, but we need it as matrix
-      #here - therefore we have to change back and forth
-      par <- as.matrix(par)
-      
-      par <- rbind(par, 1 - sum(par[, 1]))
-      
-      #Calculate Portfolio return
-      pfreturn <- t(expectedreturn) %*% par
-      
-      #Calculate Portfolio standard deviation
-      pfvar <- t(par) %*% covmatrix %*% par
-      
-      #Calculate Sharpe Ratio
-      sharperatio <- pfreturn / (pfvar ^ 0.5)
-      
-      return(sharperatio)
-    }
-    
-    
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-    ##---Portfolio Creation---###
-    
-    
-    
-    #test dataframe
-    
-    # chosendata <- as.data.frame(newData())
-    # rownames(newData()) <- newData()[, 1]
-    # chosendata <- chosendata[, -1]
-    
-    ### Sharperatio optimized pure Equity Portfolio
-    # Takes a dataframe with all indices as input
-    optimpf <- function(data){
-        #get past returns
-        returns <- data.frame()
-        for(c in 1:ncol(data)){
-            for(r in 1:nrow(data) - 1){
-                returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
             }
-        }
-        #startingweights for optimisation -1 so that weights add up to 1
-        startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
-        expectedreturn <- as.matrix(rep(0,length.out=ncol(data)))
-        #return and covariances as matrixes
-        returnmatrix <- as.matrix(returns[,])
-        covmatrix <- cov(returnmatrix)
-        #expected returns for every stock
-        for(c in 1:ncol(returns)){
-            expectedreturn[c,1] <- mean(returns[,c])
-        }
-        #Find Optimal portfolioweights given the lower bound of 0 and the shareratio function defined above
-        optweights <- optim(par = as.vector(startingweights), fn = sharpe, 
-                            expectedreturn = expectedreturn, covmatrix = covmatrix , 
-                            control=list(fnscale=-1),lower = 0, method = "L-BFGS-B")
-        optweights <- as.matrix(optweights$par)
-        optweights <- rbind(optweights, 1-sum(optweights))
-        
-        #Indexed Portfolio
-        indexportfolio <- data.frame()
-        for(c in 1:ncol(data)){
-            indexportfolio[1,c] <- 100
-        }
-        for(c in 1:ncol(data)){
-            for(r in 1:nrow(returns)){
-                indexportfolio[r+1,c] <- indexportfolio[r,c]*(1+returns[r,c])
+          
+          maxdrawdown <- min(trailingmaxdrawdown[, 1])
+          return(maxdrawdown)
+          }
+    
+####### Calculate annual standard deviation ####################################
+    
+        yearlystd <- function(backtest){
+          portfoliologreturns <- data.frame()
+          
+          for (r in 1:(nrow(backtest) - 1)){
+            portfoliologreturns[r, 1] <- log(backtest[r + 1, 1] /
+                                               backtest[r, 1])
             }
-        }
-        
-        colnames(indexportfolio) <- NULL
-        rownames(indexportfolio) <- NULL
-        
-        #Form Portfolio with the sharperatio optimal weights
-        portfolio <- data.frame()
-        for(r in 1:nrow(indexportfolio)){
-            portfolio[r,1] <- as.numeric(as.matrix(indexportfolio[r,]) %*% optweights)
-        }
-        
-        
-        #Returns a Portfolio Indexed to 100
-        return(portfolio)
-    }
+          
+          yearlystd <- sd(portfoliologreturns[, 1]) * sqrt(252)
+          return(yearlystd)
+          }
+    
+####### Calculate sharpe Ratio for maximization ################################
+    
+        sharpe <- function(expectedreturn, covmatrix, par){
+      
+######### optim, used, later needs the parameters as vector, but we need it as #
+######### matrix here - therefore we have to change it #########################
+      
+          par <- as.matrix(par)
+          par <- rbind(par, 1 - sum(par[, 1]))
+      
+######### Calculate Portfolio return ###########################################
+      
+          pfreturn <- t(expectedreturn) %*% par
+      
+######### Calculate Portfolio standard deviation ###############################
+      
+          pfvar <- t(par) %*% covmatrix %*% par
+      
+######### Calculate Sharpe Ratio ###############################################
+      
+          sharperatio <- pfreturn / (pfvar ^ 0.5)
+          
+          return(sharperatio)
+          }
+    
+
+######### Within this section, the PF that are later proposed to our clients ###
+######### are evaluated, based on the scrapped data set, that is subsetted #####
+######### according to the usere's inputs. #####################################
     
     
-    ### Equity + Debt Portfolio
+######## Sharperatio optimized -  Pure Equity Portfolio ########################
+######## Takes a dataframe with all equity indices as input ####################
     
-   
-     equityanddeptpf <- function(equity, dept, equityaspercent){
-      
-      
-      bondindex <- data.frame(matrix(NA,ncol = 2,nrow = nrow(equity)))
-      bondindex[,1] <- dept
-      bondindex[,2] <- dept
-      dept <- optimpf(bondindex)
-      portfolio <- data.frame()
-      
-      for(r in 1:nrow(equity)){
+        optimpf <- function(data) {
         
-        portfolio[r,1] <- equity[r,1]*equityaspercent + dept[r,1]*(1-equityaspercent)
+          #get past returns
+          returns <- data.frame()
         
-      }
-      
-      
-      
-      return(portfolio)
-     }
+          for (c in 1:ncol(data)) {
+            for (r in 1:nrow(data) - 1) {
+              returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
+              }
+            }
+        
+# make sure, that the sum of the weights of the PF components adds up to 1, ####
+          
+          startingweights <- as.matrix(rep(1 / ncol(data),
+                                           length.out = (ncol(data) - 1)))
+          
+          expectedreturn <- as.matrix(rep(0, length.out = ncol(data)))
+        
+######### pac the returns and covariances into  matrices #######################
+          
+          returnmatrix <- as.matrix(returns[, ])
+          covmatrix <- cov(returnmatrix)
+        
+######### compute the expected returns for every security ######################
+        
+          for (c in 1:ncol(returns)) {
+            expectedreturn[c, 1] <- mean(returns[,c])
+            }
+        
+######### Find Optimal PF-weights given the lower bound of 0 and the ###########
+######### Sharpe - Ratio function defined above. ###############################
+        
+          optweights <- optim(par = as.vector(startingweights),
+                              fn = sharpe,
+                              expectedreturn = expectedreturn,
+                              covmatrix = covmatrix,
+                              control = list(fnscale = -1),
+                              lower = 0,
+                              method = "L-BFGS-B")
+          
+          optweights <- as.matrix(optweights$par)
+          optweights <- rbind(optweights, 1 - sum(optweights))
+        
+        
+######### Function to standardize PF time series to a starting value of 100 ####
+          
+          indexportfolio <- data.frame()
+          
+          for (c in 1:ncol(data)) {
+            indexportfolio[1, c] <- 100
+          }
+          
+          for (c in 1:ncol(data)) {
+            for (r in 1:nrow(returns)) {
+              indexportfolio[r + 1, c] <- indexportfolio[r, c] * 
+                                            (1 + returns[r, c])
+            }
+          }
+          
+          colnames(indexportfolio) <- NULL
+          rownames(indexportfolio) <- NULL
+        
+######### Form Portfolio with the Sharpe ratio optimal weights #################
+        
+          portfolio <- data.frame()
+          for (r in 1:nrow(indexportfolio)) {
+            portfolio[r, 1] <- as.numeric(as.matrix(indexportfolio[r, ]) %*%
+                                            optweights)
+            }
+        
+        
+######### The output of this function is a PF time series indexed to 100 #######
+          
+          return(portfolio)
+
+######### end of optimpf function ##############################################           
+          }
+    
+    
+######### Equity + Debt Portfolio ##############################################
      
-     
-     indexpf <- function(data){
+        equityanddebtpf <- function(equity, debt, equityaspercent) {
+      
+          bondindex <- data.frame(matrix(NA,
+                                         ncol = 2,
+                                         nrow = nrow(equity)))
+          bondindex[, 1] <- debt
+          bondindex[, 2] <- debt
+          
+          debt <- optimpf(bondindex)
+          portfolio <- data.frame()
+      
+          for (r in 1:nrow(equity)){
+            portfolio[r, 1] <- equity[r, 1] * equityaspercent +
+                                debt[r, 1] * (1 - equityaspercent)
+            }
+          
+          return(portfolio)
+          }
+        
+        indexpf <- function(data) {
+          
+          returns <- data.frame()
+          
+          for (c in 1:ncol(data)) {
+            for (r in 1:nrow(data) - 1) {
+              returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
+            }
+          }
+          
+          indexportfolio <- data.frame()
+          
+          for (c in 1:ncol(data)) {
+            indexportfolio[1, c] <- 100
+            }
        
-       returns <- data.frame()
-       for(c in 1:ncol(data)){
-         for(r in 1:nrow(data)-1){
-           returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
-         }
-       }
-       
-       indexportfolio <- data.frame()
-       
-       for(c in 1:ncol(data)){
-         indexportfolio[1,c] <- 100
-       }
-       
-       for(c in 1:ncol(data)){
-         for(r in 1:nrow(returns)){
-           indexportfolio[r+1,c] <- indexportfolio[r,c]*(1+returns[r,c])
-         }
-       }
-       
-       return(indexportfolio)
-       
-     }
+          for (c in 1:ncol(data)){
+            for (r in 1:nrow(returns)){
+              indexportfolio[r + 1,c] <- indexportfolio[r, c] *
+                                          (1 + returns[r , c])
+            }
+          }
+          return(indexportfolio)
+          
+        }
     
      
      
@@ -1081,204 +1323,224 @@ server <- function(input, output, session) {
     }
 
      
+### Risk Parity Portfolio ######################################################
+################################################################################
      
-    ### Risk Parity Portfolio
-     
-    riskparity <- function(covmatrix, par){
+    riskparity <- function(covmatrix, par) {
       
       par <- as.matrix(par)
-      par <- rbind(par, 1-sum(par[,1]))
+      par <- rbind(par, 1 - sum(par[, 1]))
       startingweights <- par
       
-      marginalrisk <- covmatrix%*%startingweights
-      contribution <- as.matrix(as.numeric((startingweights*marginalrisk)))/sqrt(as.numeric((t(startingweights)%*%covmatrix%*%startingweights)))
-      portfoliorisk <- sqrt(as.numeric((t(startingweights)%*%covmatrix%*%startingweights)))
+      marginalrisk <- covmatrix %*% startingweights
+      contribution <- as.matrix(as.numeric((startingweights * marginalrisk))) /
+        sqrt(as.numeric((t(startingweights) %*% covmatrix %*% startingweights)))
+      
+      portfoliorisk <- sqrt(as.numeric((t(startingweights) %*% covmatrix %*% 
+                                          startingweights)))
       
       
       contributionpercent <- matrix(ncol = 1, nrow = 3)
-      for(r in 1:nrow(contribution)){
-        contributionpercent[r,1] <- contribution[r,1]/sum(contribution)
+      for (r in 1:nrow(contribution)) {
+        contributionpercent[r, 1] <- contribution[r, 1]/sum(contribution)
       }
       
       
+###### Workaround to make the optimizer find a stable minimum ##################
       
-      if(par[1,1]+par[2,1]>1){
+      if (par[1, 1] + par[2, 1] > 1){
         portfoliorisk <- 3
       }
-
-        
-        portfoliorisk <- abs((contributionpercent[1,1]-contributionpercent[2,1]))+
-                         abs((contributionpercent[1,1]-contributionpercent[3,1]))
       
+      portfoliorisk <- abs((contributionpercent[1, 1] - 
+                              contributionpercent[2, 1])) +
+                       abs((contributionpercent[1, 1] -
+                              contributionpercent[3, 1]))
       
       return(portfoliorisk)
-      
     }
     
-    riskparitypf <- function(equity, dept, commodity){
+    riskparitypf <- function(equity, debt, commodity) {
       
-      data <- as.matrix(cbind(equity,dept,commodity))
+      data <- as.matrix(cbind(equity, debt, commodity))
       
-      startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
+      startingweights <- as.matrix(rep(1 / ncol(data),
+                                       length.out = (ncol(data) - 1)))
       
       returns <- data.frame()
-      for(c in 1:ncol(data)){
-        for(r in 1:nrow(data)-1){
-          returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+      for (c in 1:ncol(data)) {
+        for (r in 1:nrow(data) - 1) {
+          returns[r, c] <- (data[r + 1, c] - data[r, c]) / data[r, c]
         }
       }
       
-      returnmatrix <- as.matrix(returns[,])
+      returnmatrix <- as.matrix(returns[, ])
       covmatrix <- cov(returnmatrix)
-      
-      
-      
-      optweights <- optim(par = as.vector(startingweights), fn = riskparity, 
-                          covmatrix = covmatrix,lower = 0, method = "L-BFGS-B")
+
+      optweights <- optim(par = as.vector(startingweights),
+                          fn = riskparity, 
+                          covmatrix = covmatrix,
+                          lower = 0,
+                          method = "L-BFGS-B")
       
       optweights <- as.matrix(optweights$par)
-      optweights <- rbind(optweights,1-sum(optweights))
+      optweights <- rbind(optweights, 1 - sum(optweights))
       
       portfolio <- data.frame(100)
       
-      for(r in 1:nrow(returns)){
-        portfolio[(1+r),1] <- portfolio[r,1]*(1+(returns[r,1]*optweights[1,1]+
-                                              returns[r,2]*optweights[2,1]+
-                                              returns[r,3]*optweights[3,1]))
+      for (r in 1:nrow(returns)) {
+        portfolio[(1 + r), 1] <- portfolio[r, 1] * 
+                                  (1 + (returns[r, 1] * optweights[1, 1] +
+                                          returns[r, 2] * optweights[2, 1] +
+                                          returns[r, 3] * optweights[3, 1]))
         }
-    
       return(portfolio)
-
-    }
+##### end of Risk parity function ##############################################
+      }
     
   
-    ### MinVar Portfolio
-    minvar <- function(covmatrix,par){
-      
+##### Minimum Variance Portfolio ###############################################
+################################################################################
+    minvar <- function(covmatrix,par) {
       
       par <- as.matrix(par)
-      par <- rbind(par, 1-sum(par[,1]))
+      par <- rbind(par, 1 - sum(par[, 1]))
       
-      std <- t(par)%*%covmatrix%*%par
+      std <- t(par) %*% covmatrix %*% par
       
-      if(par[1,1]+par[2,1]>1){
+      if (par[1, 1] + par[2, 1] > 1){
         std <- 3
       }
       
       return(std)
     }
     
-    
-    
-    
-    minvarpf <- function(data){
+    minvarpf <- function(data) {
       
       returns <- data.frame()
-      for(c in 1:ncol(data)){
-        for(r in 1:nrow(data)-1){
-          returns[r,c] <- (data[r+1,c]-data[r,c])/data[r,c]
+      for (c in 1:ncol(data)) {
+        for (r in 1:nrow(data) - 1) {
+          returns[r, c] <- (data[(r + 1), c] - data[r, c]) / data[r, c]
         }
       }
       
-      returnmatrix <- as.matrix(returns[,])
+      returnmatrix <- as.matrix(returns[, ])
       covmatrix <- as.matrix(cov(returnmatrix))
       
-      startingweights <- as.matrix(rep(1/ncol(data),length.out=(ncol(data)-1)))
+      startingweights <- as.matrix(rep(1 / ncol(data),
+                                       length.out = (ncol(data) - 1)))
       
-      optweights <- optim(par = as.vector(startingweights), fn = minvar, 
-                          covmatrix = covmatrix,lower = 0, method = "L-BFGS-B")
+      optweights <- optim(par = as.vector(startingweights),
+                          fn = minvar,
+                          covmatrix = covmatrix,
+                          lower = 0,
+                          method = "L-BFGS-B")
       
       optweights <- as.matrix(optweights$par)
-      optweights <- rbind(optweights,1-sum(optweights))
-      
+      optweights <- rbind(optweights, 1 - sum(optweights))
       
       portfolio <- data.frame(100)
-      for(r in 1:nrow(returns)){
-        portfolio[(1+r),1] <- portfolio[r,1]*(1+(as.matrix(returns[r,])%*%optweights))
+      for (r in 1:nrow(returns)) {
+        portfolio[(1 + r), 1] <- portfolio[r, 1] *
+          (1 + (as.matrix(returns[r, ]) %*% optweights))
       }
       
-      
       return(portfolio)
-      
+### End of Minimum Variance Portfolio function #################################
     }
-    ##### call the portfolios according to the user's input ###################
     
-    ########################################################
-    ######### short bond only ###############
+    
+### call the portfolios according to the user's input ##########################
+    
+################################################################################
+##### short bond only ##########################################################
+
     output$ourPF <- renderPlot({
-      if(input$rpref2 == 1 && input$inv_horizon <= 5) {
+      if (input$rpref2 == 1 && input$inv_horizon <= 5) {
   
         plot.ts(shortbond)
         title("short bond")
         summary(shortbond)
       }
     
-    ######## long bond only #################  
-      if((input$rpref2 == 2 && input$inv_horizon <= 5) ||
-         (input$rpref2 == 1 && input$inv_horizon > 5 && input$inv_horizon <= 10)) {
+##### long bond only ###########################################################
+      
+      if ((input$rpref2 == 2 && input$inv_horizon <= 5) ||
+          (input$rpref2 == 1 && input$inv_horizon > 5 &&
+           input$inv_horizon <= 10)) {
         
         plot.ts(longbond)
         title("long bond")
         summary(longbond)
       }
       
-    ######### minimum variance PF ##############  
-      if((input$rpref2 == 3 && input$inv_horizon <= 5) ||
-         #redundant but inclluded so that the number of conitions equals the number of PFs
-         (input$rpref2 == 3 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
-         (input$rpref2 == 2 && input$inv_horizon > 10)) {
-        
-        flor <- floor(ncol(newData())/15)
-        remaining <- ncol(newData())-15*flor
-        lastdata <- flor+1
-        
-        for(n in 1:flor){
-          
-          data.n  <- newData()[((n-1)*15+1):(n*15)]
-          assign(as.character(paste("data", as.character(n),sep="")),data.n)
-          
-          
-        }
-        
-        data.lastdata <- newData()[(flor*15):ncol(newData())]
-        assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
-        
-        finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
-        
-        for(n in 1:(flor+1)){
-          
-          dataopt<- minvarpf(get(paste("data",n,sep="")))
-          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
-          finaldata <- cbind(finaldata,dataopt)
-          
-        }
-        
-        minimumvariancepf <- minvarpf(finaldata)
-       
-        plot.ts(minimumvariancepf)
-        title("minimum variance portfolio")
-        summary(minimumvariancepf)
-      }
-    
-      ######################### Equity + longbond overweight bond #################
-      if (input$rpref2 == 1 && input$inv_horizon > 10) {
-       
+##### minimum variance PF ######################################################
+      
+      if ((input$rpref2 == 3 && input$inv_horizon <= 5) ||
+         #redundant but included so that the number of conitions = number of PFs
+          (input$rpref2 == 3 && input$inv_horizon > 5 &&
+           input$inv_horizon <= 10) ||
+          (input$rpref2 == 2 && input$inv_horizon > 10)) {
+      
+####### split the required input df into sub-df's to make them optimizable #####
         flor <- floor(ncol(newData()) / 15)
         remaining <- ncol(newData()) - 15 * flor
         lastdata <- flor + 1
         
-        for(n in 1:flor){
+        for (n in 1:flor){
           
-          data.n  <- newData()[((n-1)*15+1):(n*15)]
-          assign(as.character(paste("data", as.character(n),sep="")),data.n)
+          data.n  <- newData()[((n - 1) * 15 + 1):(n * 15)]
+          assign(as.character(paste("data", as.character(n), sep = "")), data.n)
         }
         
-        data.lastdata <- newData()[(flor*15):ncol(newData())]
+        data.lastdata <- newData()[(flor * 15):ncol(newData())]
+        assign(as.character(paste("data", as.character((flor + 1)),
+                                  sep="")),
+               data.lastdata)
+        
+        finaldata <- data.frame(matrix(nrow = nrow(newData())))[, -1]
+        
+        for (n in 1:(flor + 1)){
+          
+          dataopt<- minvarpf(get(paste("data", n, sep = "")))
+          assign(as.character(paste("dataopt",
+                                    as.character(n),
+                                    sep="")),
+                 dataopt)
+          
+          finaldata <- cbind(finaldata,dataopt)
+        }
+        
+        minimumvariancepf <- minvarpf(finaldata)
+       
+####### include the performance plot in Shiny ##################################
+        plot.ts(minimumvariancepf)
+        title("minimum variance portfolio")
+        }
+    
+###### Equity + longbond overweight bond #######################################
+
+      if (input$rpref2 == 1 && input$inv_horizon > 10) {
+        
+        flor <- floor(ncol(newData()) / 15)
+        remaining <- ncol(newData()) - 15 * flor
+        lastdata <- flor + 1
+        
+        for (n in 1:flor){
+          
+          data.n  <- newData()[((n - 1) * 15 + 1):(n * 15)]
+          assign(as.character(paste("data",
+                                    as.character(n),
+                                    sep="")),
+                 data.n)
+          }
+        
+        data.lastdata <- newData()[(flor * 15):ncol(newData())]
         assign(as.character(paste("data", as.character((flor+1)),sep="")),data.lastdata)
         
         finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
         
-        for(n in 1:(flor+1)){
+        for (n in 1:(flor+1)){
           
           dataopt<- optimpf(get(paste("data",n,sep="")))
           assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
@@ -1295,7 +1557,7 @@ server <- function(input, output, session) {
       }
       
       ######################### risk parity ############################
-      if((input$rpref2 == 4 && input$inv_horizon <= 5) ||
+      if ((input$rpref2 == 4 && input$inv_horizon <= 5) ||
          (input$rpref2 == 5 && input$inv_horizon <= 5) ||
          (input$rpref2 == 4 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
@@ -1306,7 +1568,7 @@ server <- function(input, output, session) {
         remaining <- ncol(newData()) - 15 * flor
         lastdata <- flor + 1
         
-        for(n in 1:flor){
+        for (n in 1:flor){
           
           data.n  <- newData()[((n-1)*15+1):(n*15)]
           assign(as.character(paste("data", as.character(n),sep="")),data.n)
@@ -1317,7 +1579,7 @@ server <- function(input, output, session) {
         
         finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
         
-        for(n in 1:(flor+1)){
+        for (n in 1:(flor+1)){
           
           dataopt<- optimpf(get(paste("data",n,sep="")))
           assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
@@ -1336,7 +1598,7 @@ server <- function(input, output, session) {
       }
       
       ########################### equity + longbond overweight equity ########
-      if((input$rpref2 == 6 && input$inv_horizon <= 5) ||
+      if ((input$rpref2 == 6 && input$inv_horizon <= 5) ||
          (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
         
@@ -1344,7 +1606,7 @@ server <- function(input, output, session) {
         remaining <- ncol(newData()) - 15 * flor
         lastdata <- flor + 1
         
-        for(n in 1:flor){
+        for (n in 1:flor){
           
           data.n  <- newData()[((n-1)*15+1):(n*15)]
           assign(as.character(paste("data", as.character(n),sep="")),data.n)
@@ -1355,7 +1617,7 @@ server <- function(input, output, session) {
         
         finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
         
-        for(n in 1:(flor+1)){
+        for (n in 1:(flor+1)){
           
           dataopt<- optimpf(get(paste("data",n,sep="")))
           assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
@@ -1381,7 +1643,7 @@ server <- function(input, output, session) {
         remaining <- ncol(newData()) - 15 * flor
         lastdata <- flor + 1
         
-        for(n in 1:flor){
+        for (n in 1:flor){
           
           data.n  <- newData()[((n-1)*15+1):(n*15)]
           assign(as.character(paste("data", as.character(n),sep="")),data.n)
@@ -1392,10 +1654,10 @@ server <- function(input, output, session) {
         
         finaldata <- data.frame(matrix(nrow = nrow(newData())))[,-1]
         
-        for(n in 1:(flor+1)){
+        for (n in 1:(flor + 1)){
           
-          dataopt<- optimpf(get(paste("data",n,sep="")))
-          assign(as.character(paste("dataopt", as.character(n),sep="")),dataopt)
+          dataopt<- optimpf(get(paste("data", n, sep = "")))
+          assign(as.character(paste("dataopt", as.character(n), sep="")),dataopt)
           finaldata <- cbind(finaldata,dataopt)
         }
         
@@ -1406,54 +1668,72 @@ server <- function(input, output, session) {
       
     })
     
-    # PDF Download Handler
+### PDF Download Handler - option for the user to downloas her personal report #
+    
     output$downloadReport <- downloadHandler(
-      filename = function() {
-        paste('my-report', sep = '.', switch(
-          input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
-        ))
-      },
       
-      content = function(file) {
-        src <- normalizePath('report.Rmd')
+      filename <- function() {
+        paste("my-report",
+              sep = '.',
+              switch(input$format,
+                     PDF = "pdf",
+                     HTML = "html",
+                     Word = "docx")
+              )
+        },
+      
+      content <- function(file) {
+        src <- normalizePath("report.Rmd")
         
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
+####### temporarily switch to the temp dir, in case you do not have write ######
+####### permission to the current working directory ############################
+        
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        file.copy(src,
+                  "report.Rmd",
+                  overwrite = TRUE)
         
-        library(rmarkdown)
-        out <- render('report.Rmd', switch(
-          input$format,
-          PDF = pdf_document(), HTML = html_document(), Word = word_document()
-        ))
+        
+        out <- render('report.Rmd',
+                      switch(input$format,
+                             PDF = pdf_document(),
+                             HTML = html_document(),
+                             Word = word_document())
+                      )
+        
         file.rename(out, file)
-      }
+        
+        }
     )
 
     
-
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-                                ##---ValueBoxes---##
+#### ValueBoxes ################################################################
+################################################################################
 
     output$horizonBox <- renderValueBox({
         valueBox(
-            paste0(input$inv_horizon, " years"), "Investment Horizon", icon = icon("hourglass-half"),
+            paste0(input$inv_horizon, " years"),
+            "Investment Horizon",
+            icon = icon("hourglass-half"),
             color = "blue"
         )
     })
 
     output$returnBox <- renderValueBox({
         valueBox(
-            paste0(drift[input$rpref] * 100, "%"), "Return", icon = icon("chart-line"),
+            paste0(drift[input$rpref] * 100, "%"),
+            "Return",
+            icon = icon("chart-line"),
             color = "green"
         )
     })
 
     output$stdBox <- renderValueBox({
         valueBox(
-            paste0(diffusion[input$rpref] * 100, "%"), "Standard Deviation", icon = icon("square-root-alt"),
+            paste0(diffusion[input$rpref] * 100, "%"),
+            "Standard Deviation",
+            icon = icon("square-root-alt"),
             color = "red"
         )
     })
@@ -1461,12 +1741,17 @@ server <- function(input, output, session) {
     output$avgBox <- renderValueBox({
         if (sum(sim$data) == 0) {
             valueBox(
-                paste0(NA, "$"), "Average Value", icon = icon("hand-holding-usd"),
+                paste0(NA, "$"),
+                "Average Value",
+                icon = icon("hand-holding-usd"),
                 color = "blue"
             )
+          
         } else {
             valueBox(
-                paste0(round(mean(sim$data)), "$"), "Average Value", icon = icon("hand-holding-usd"),
+                paste0(round(mean(sim$data)), "$"),
+                "Average Value",
+                icon = icon("hand-holding-usd"),
                 color = "blue"
             )
         }
@@ -1475,12 +1760,18 @@ server <- function(input, output, session) {
     output$uplimBox <- renderValueBox({
         if (sum(sim$data) == 0) {
             valueBox(
-                paste0(NA, "$"), "90% Limit Profit", icon = icon("greater-than"),
+                paste0(NA, "$"),
+                "90% Limit Profit",
+                icon = icon("greater-than"),
                 color = "green"
             )
+          
         } else {
             valueBox(
-                paste0(round(sim$data[order(sim$data)[length(sim$data)*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
+                paste0(round(sim$data[order(sim$data)[length(sim$data) * 0.9]] -
+                               input$initial_wealth), "$"),
+                "90% Limit Profit",
+                icon = icon("greater-than"),
                 color = "green"
             )
         }
@@ -1489,12 +1780,18 @@ server <- function(input, output, session) {
     output$lowlimBox <- renderValueBox({
         if (sum(sim$data) == 0) {
             valueBox(
-                paste0(NA, "$"), "10% Limit Loss", icon = icon("less-than"),
+                paste0(NA, "$"),
+                "10% Limit Loss",
+                icon = icon("less-than"),
                 color = "red"
             )
+          
         } else {
             valueBox(
-                paste0(round(sim$data[order(sim$data)[length(sim$data)*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
+                paste0(round(sim$data[order(sim$data)[length(sim$data) * 0.1]] -
+                               input$initial_wealth), "$"),
+                "10% Limit Loss",
+                icon = icon("less-than"),
                 color = "red"
             )
         }
@@ -1502,50 +1799,65 @@ server <- function(input, output, session) {
 
     output$horizonBox1 <- renderValueBox({
         valueBox(
-            paste0(input$inv_horizon, " years"), "Investment Horizon", icon = icon("hourglass-half"),
+            paste0(input$inv_horizon, " years"),
+            "Investment Horizon",
+            icon = icon("hourglass-half"),
             color = "blue"
         )
     })
 
     output$returnBox1 <- renderValueBox({
         valueBox(
-            paste0(drift[input$rpref2] * 100, "%"), "Return", icon = icon("chart-line"),
+            paste0(drift[input$rpref2] * 100, "%"),
+            "Return",
+            icon = icon("chart-line"),
             color = "green"
         )
     })
 
     output$stdBox1 <- renderValueBox({
         valueBox(
-            paste0(diffusion[input$rpref2] * 100, "%"), "Standard Deviation", icon = icon("square-root-alt"),
+            paste0(diffusion[input$rpref2] * 100, "%"),
+            "Standard Deviation",
+            icon = icon("square-root-alt"),
             color = "red"
         )
     })
 
     output$avgBox1 <- renderValueBox({
         valueBox(
-            paste0(round(mean(sim$terminal_wealth)), "$"), "Average Value", icon = icon("hand-holding-usd"),
+            paste0(round(mean(sim$terminal_wealth)), "$"),
+            "Average Value",
+            icon = icon("hand-holding-usd"),
             color = "blue"
         )
     })
 
     output$uplimBox1 <- renderValueBox({
-        valueBox(
-            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.9]] - input$initial_wealth), "$"), "90% Limit Profit", icon = icon("greater-than"),
+        valueBox( ############ the following line is supposed to be too long ;-)
+            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws * 0.9]] -
+                           input$initial_wealth), "$"),
+            "90% Limit Profit",
+            icon = icon("greater-than"),
             color = "green"
         )
     })
 
     output$lowlimBox1 <- renderValueBox({
-        valueBox(
-            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws*0.1]] - input$initial_wealth), "$"), "10% Limit Loss", icon = icon("less-than"),
+        valueBox( ############ the following line is supposed to be too long ;-)
+            paste0(round(sim$terminal_wealth[order(sim$terminal_wealth)[draws * 0.1]] -
+                           input$initial_wealth), "$"),
+            "10% Limit Loss",
+            icon = icon("less-than"),
             color = "red"
         )
     })
 
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-                        ##---Switch Buttons---##
-
-    # Switch Tabs with action buttons
+#### Switch Buttons ############################################################
+################################################################################
+    
+### Switch Tabs with action buttons ############################################
+    
     observeEvent(
         input$button1, {
             newtab <- switch(input$tabs, "tab1" = "tab2")
@@ -1574,7 +1886,7 @@ server <- function(input, output, session) {
         }
     )
 
-    observeEvent(
+    observeEvent( # include error message, when all regions are deselected #####
         input$button5, {
           if (is.null(input$mymap_groups)) {
             sendSweetAlert(
@@ -1597,11 +1909,11 @@ server <- function(input, output, session) {
         }
     )
     
-    
-    ###---###---###---###---###---###---###---###---###---###---###---###---###
-} # end of server
+# end of server function #######################################################
+################################################################################
+
+}
 
 runApp(shinyApp(ui,server),launch.browser = TRUE)
 #runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
 #shinyApp(ui,server)
-
