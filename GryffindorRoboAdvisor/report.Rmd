@@ -33,7 +33,7 @@ if (("NorthAmerica" %in% input$mymap_groups) || ("Asia" %in% input$mymap_groups)
 To sum up, the portfolio has been constructed based on the following ETFs: `r colnames(newData())`.
 
 ```{r}
-plot(newData())
+#plot(newData())
 ```
 
 
