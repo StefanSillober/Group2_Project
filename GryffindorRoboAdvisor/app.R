@@ -20,6 +20,7 @@ library(rgdal)
 library(markdown)
 library(rmarkdown)
 library(shinycssloaders)
+library(ggplot2)
 
 
 header <- dashboardHeader(
@@ -1519,7 +1520,7 @@ server <- function(input, output, session) {
 ### call the portfolios according to the user's input ##########################
     
 ################################################################################
-##### short bond only ##########################################################
+
 
     output$ourPF <- renderPlot({
       
@@ -1536,13 +1537,24 @@ server <- function(input, output, session) {
         }
         progress$set(value = value, detail = detail)
       }
+      
+##### short bond only ##########################################################      
         
       if (input$rpref2 == 1 && input$inv_horizon <= 5) {
         
-        portfoliofinal <<- shortbond
-        plot.ts(portfoliofinal)
-        title("short bond")
-        summary(shortbond)
+        portfoliofinal <<- indexpf(as.data.frame(shortbond))
+        
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Short Maturity Bonds Only") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
       }
     
 ##### long bond only ###########################################################
@@ -1551,11 +1563,23 @@ server <- function(input, output, session) {
           (input$rpref2 == 1 && input$inv_horizon > 5 &&
            input$inv_horizon <= 10)) {
         
-        portfoliofinal <<- longbond
+        portfoliofinal <<- indexpf(as.data.frame(longbond))
         equityinvestment <<- 0
-        plot.ts(portfoliofinal)
-        title("long bond")
+
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Long Maturity Bonds Only") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
       }
+        
+
       
 ##### minimum variance PF ######################################################
       
@@ -1571,8 +1595,17 @@ server <- function(input, output, session) {
         equityinvestment <<- 0
       
 ####### include the performance plot in Shiny ##################################
-        plot.ts(portfoliofinal)
-        title("minimum variance portfolio")
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Minimum Variance Portfolio") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
         
         }
     
@@ -1587,8 +1620,18 @@ server <- function(input, output, session) {
         longbondindexed <- indexpf(as.data.frame(longbond))
         portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.2)
         
-        plot.ts(as.matrix(portfoliofinal))
-        title("Equity-Longbond Bond overweight")
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Equity and Bond Portfolio with overweight in bonds") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
+        
         equityinvestment <<- 0.2
       }
       
@@ -1609,8 +1652,19 @@ server <- function(input, output, session) {
         
         portfoliofinal <<- riskparitypf(finalpf, longbonddf, commoditydf)
         equityinvestment <<- 0
-        plot.ts(portfoliofinal)
-        title("Risk Parity")
+
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Risk Parity Portfolio") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
+        
       }
       
       ########################### equity + longbond overweight equity ########
@@ -1626,8 +1680,18 @@ server <- function(input, output, session) {
         portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.8)
         equityinvestment <<- 0.8
         
-        plot.ts(as.matrix(portfoliofinal))
-        title("Equity-Bond Equity overweight")
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Equity and Longtherm Maturity Bonds Portfolio with overwight in equity") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
+        
       }
       
       ########################## Pure Equity² #########################
@@ -1640,9 +1704,20 @@ server <- function(input, output, session) {
         
         portfoliofinal <<- optimpf(finaldata)
         equityinvestment <<- 1
-        plot.ts(as.matrix(portfoliofinal))
-        title("Pure Equity")
+        
+        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        names(portfolioplot) <- c("Date","Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        
+        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
+          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+          labs(x = "Year", y = "Your Portfolio", 
+               title = "Pure Sharpe Ratio optimized Equity Portfolio") +
+          scale_x_date(date_breaks = "2 years") +
+          theme_minimal()
       }
+      plotfinal
     })
     
 ### PDF Download Handler - option for the user to downloas her personal report #
@@ -1692,8 +1767,9 @@ server <- function(input, output, session) {
     
     output$expectedValue <- renderValueBox({
       valueBox(
-        paste0(round((1+(averagereturn(portfoliofinal)*input$inv_horizon)*input$initial_wealth)), "$"),
-        paste0("Expected wealth after ", input$inv_horizon, "years" ),
+        
+        paste0(round((1+(averagereturn(portfoliofinal)*input$inv_horizon))*input$initial_wealth), "$"),
+        paste0("Expected wealth after ", input$inv_horizon, " years" ),
         icon = icon("hand-holding-usd"),
         color = "blue"
       )
