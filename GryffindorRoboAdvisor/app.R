@@ -1,6 +1,5 @@
 library(shiny)
 library(shinydashboard)
-library(ggplot2)
 library(leaflet)
 library(RJSONIO)
 library(rjson)
@@ -1282,6 +1281,7 @@ server <- function(input, output, session) {
                               method = "L-BFGS-B")
           
           optweights <- as.matrix(optweights$par)
+          
           optweights <- rbind(optweights, 1 - sum(optweights))
         
         
@@ -1451,7 +1451,7 @@ server <- function(input, output, session) {
       
       optweights <- as.matrix(optweights$par)
       optweights <- rbind(optweights, 1 - sum(optweights))
-      
+      riskparityequity <<- as.numeric(optweights[1, 1])
       portfolio <- data.frame(100)
       
       for (r in 1:nrow(returns)) {
@@ -1690,7 +1690,7 @@ server <- function(input, output, session) {
         commoditydf <- as.data.frame(commodities)
         
         portfoliofinal <<- riskparitypf(finalpf, longbonddf, commoditydf)
-        equityinvestment <<- 0
+        equityinvestment <<- riskparityequity
 
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
@@ -1853,7 +1853,7 @@ server <- function(input, output, session) {
     
     output$equity <- renderValueBox({
       valueBox(
-        paste0(round(equityinvestment*100), "%"),
+        paste0(round(equityinvestment*100,2), "%"),
         "Invested in Equity",
         icon = icon("hand-holding-usd"),
         color = "purple"
