@@ -61,141 +61,93 @@ body <- dashboardBody(
           
         # First Tab: Risk Evaluation
         tabItem(tabName = "tab1", h2("Risk Evaluation"), # tab item header
-            fluidRow(
-                column(width = 4,
-                       box(title = "How much money would you like to invest?",
+                fluidRow(
+                  column(width = 4,
+                       box(title = "Set Parameters",
                            width = 0.25,
-                           numericInput("initial_wealth",
-                                        "Euros:",
-                                        value = 10000,
-                                        min = 0,
-                                        max = NA)
-                       ),
-                       
-                       box(
-                           title = "What is your investment horizon?",
-                           width = 0.25,
-                           knobInput(
-                               inputId = "inv_horizon",
-                               label = "Years:",
-                               value = 10,
-                               min = 1,
-                               max = 30,
-                               displayPrevious = TRUE, 
-                               lineCap = "round",
-                               fgColor = "#428BCA",
-                               inputColor = "#428BCA")
-                       ),
-                       
-                       box(title = "Estimate your risk preference",
-                           width = 0.25,
-                           sliderInput("rpref",
-                                       "Risk: ",
-                                       value = 4,
-                                       min = 1,
-                                       max = 7,
-                                       step = 1),
+                           uiOutput("initial_wealth"),
+                           hr(style="border-color: grey;"),
+                           uiOutput("rpref"),
                            "Estimate your risk on the scale from 1 to 7,
-                                   where 1 is the lowest tolerance towards risk,
-                                   and 7 is the highest"
-                       ),
-                       
-                       hr(style="border-color: grey;"),
-
-                       box(title = "Simulate possible outcomes",
-                           width = 0.25,
+                           where 1 is the lowest tolerance towards risk,
+                           and 7 is the highest",
+                           hr(style="border-color: grey;"),
                            fluidRow(
-                               column(7,uiOutput("resetbutton")),
-                               column(3,uiOutput("startbutton"))),
-                           fluidRow(
-                               column(7,
-                                      actionBttn(
-                                        inputId = "stop",
-                                        label = NULL,
-                                        style = "material-circle", 
-                                        color = "warning",
-                                        icon = icon("pause")
-                                        )#actionButton("stop","Stop")
-                                      ),
-                               
-                               column(3,
-                                      actionBttn(
-                                        inputId = "play",
-                                        label = NULL,
-                                        style = "material-circle", 
-                                        color = "primary",
-                                        icon = icon("play")
-                                        )#actionButton("play","Play")
-                                      )
-                               ),
-                           
-                           sliderTextInput(
-                             inputId = "speed",
-                             label = "Simulation Speed:", 
-                             #grid = TRUE,
-                             #force_edges = TRUE,
-                             choices = c("Very Slow", 
-                                         "Slow",
-                                         "Moderate",
-                                         "Fast",
-                                         "Very Fast"),
-                             selected = "Moderate"
+                             column(6,uiOutput("inv_horizon")),
+                             column(6,
+                                    sliderTextInput(
+                                      inputId = "speed",
+                                      label = "Simulation Speed:", 
+                                      #grid = TRUE,
+                                      #force_edges = TRUE,
+                                      choices = c("Very Slow", 
+                                                  "Slow",
+                                                  "Moderate",
+                                                  "Fast",
+                                                  "Very Fast"),
+                                      selected = "Moderate"
+                                    ),
+                                    br(),
+                                    br(),
+                                    h5(tags$b("Initialize Simulation:"), 
+                                       align = "left"),
+                                    column(4,uiOutput("resetbutton")),
+                                    column(4,uiOutput("startbutton")),
+                                    column(4,uiOutput("play"))
+                             )
                            ),
-                           
                            tags$p("Press the", tags$em("Start"),
                                   "button in order to initiate the simulation.",
-                                  br(),
                                   "Press", tags$em("Next Draw"),
                                   "in order to see one possible realization.",
-                                  br(),
                                   "Use the", tags$em("Play"), "and",
                                   tags$em("Stop"), "button",
                                   "in order run the simulation automatically.",
-                                  br(),
                                   "Finally use", tags$em("Reset"),
-                                  "in order to start anew."),
-                       ),
+                                  "in order to start anew.")
+                           
+                       ), # end of box (delete ,)
                        
                        actionBttn(
-                           inputId = "button1",
-                           label = "Next",
-                           style = "unite", 
-                           color = "success"
+                         inputId = "button1",
+                         label = "Next",
+                         style = "unite", 
+                         color = "success"
                        )
-                       
-
-                ), 
+                         
+                  ), 
 ################ end of first column object#####################################
 ################################################################################
 
-                column(width = 8,
-                       tabBox(
-                         id = "tabset1",
-                         title = tagList(shiny::icon("dice"),
-                                         "Portfolio Simulation"),
-                         width = 12,
-                         height = "550",
-                         tabPanel(
-                           title = tagList(shiny::icon("chart-bar"),
-                                           "Histogram"),
-                           plotOutput('distPlot', height = "500")
-                         ),
-                         
-                         tabPanel(
-                           title = tagList(shiny::icon("info"), "Details"),
-                           "Explanation to the return sampling, i.e. GBM, 90% & 10% VaR ...."
-                         )
-                       ), 
-
-                       # Dynamic valueBoxes
-                       withSpinner(valueBoxOutput("horizonBox")),
-                       valueBoxOutput("returnBox"),
-                       valueBoxOutput("stdBox"),
-                       valueBoxOutput("avgBox"),
-                       valueBoxOutput("uplimBox"),
-                       valueBoxOutput("lowlimBox")
+              column(width = 8,
+                     tabBox(
+                       id = "tabset1",
+                       title = tagList(shiny::icon("dice"),
+                                       "Portfolio Simulation"),
+                       width = 12,
+                       height = "550",
+                       tabPanel(
+                         title = tagList(shiny::icon("chart-bar"),
+                                         "Histogram"),
+                         plotOutput('distPlot', height = "500")
+                       ),
+                       
+                       tabPanel(
+                         title = tagList(shiny::icon("info"), "Details"),
+                         "Explanation to the return sampling, i.e. GBM, 
+                                         90% & 10% VaR ...."
+                       )
+                     ), 
+                     
+                     # Dynamic valueBoxes
+                     withSpinner(valueBoxOutput("horizonBox")),
+                     valueBoxOutput("returnBox"),
+                     valueBoxOutput("stdBox"),
+                     valueBoxOutput("avgBox"),
+                     valueBoxOutput("uplimBox"),
+                     valueBoxOutput("lowlimBox")
+              )
                 )
-            )
 ###################### end of fluid row ########################################
         ),
 ###################### end of first tab item####################################
@@ -366,7 +318,7 @@ body <- dashboardBody(
 ################################################################################
 
 
-        # Fourth Tab: Industry Preferences
+        # Fourth Tab: Portfolio Construction"
         tabItem(tabName = "tab4",
                 h2("Portfolio Construction"), # tab item header
                 fluidRow(
@@ -430,38 +382,132 @@ server <- function(input, output, session) {
 
     sim <- reactiveValues() # reactive to store all reactive variables
     sim$resetindicator <- 0 # used to change button labels
+    sim$resetindicator1 <- 1 # used to change the play btn design
     sim$numb <- c()
     sim$data <- c()
     sim$terminal_wealth <- c()
     diffusion <- c(0.01, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
-    drift <- c(0.001,0.005,0.015,0.02, 0.03, 0.06, 0.1)
+    drift <- c(0.001,0.005,0.015,0.02, 0.03, 0.06, 0.07)
     draws <- 1000
     speed <- seq(1000, 100, length.out = 5)
 
 ### dynamic reset button label #################################################
     
     output$resetbutton <- renderUI({
+      actionBttn(
+        inputId = "reset",
+        label = NULL,
+        style = "material-circle",
+        color = "danger",
+        icon = icon("stop")
+      )
+    })
+    
+    
+    output$rpref <- renderUI({
       if (sim$resetindicator == 0) {
-        lbl <- "Set Parameters"
-        
+        ID <- "rpref"
       } else {
-        lbl <- "Reset"
+        ID <- "uselessID"
       }
-      actionButton("reset", label = lbl)
+      
+      sliderInput(inputId = ID,"Estimate your risk preference:",
+                  value = input$rpref, min = 1, max = 7, step = 1)
+      
+    })
+    
+    output$inv_horizon <- renderUI({
+      if (sim$resetindicator == 0) {
+        ID1 <- "inv_horizon"
+      } else {
+        ID1 <- "uselessID1"
+      }
+      
+      if (is.null(input$inv_horizon)) {
+        val <- 10
+      } else {
+        val <- input$inv_horizon
+      }
+      
+      knobInput(
+        inputId = ID1,
+        label = "What is your investment horizon?",
+        value = val,
+        min = 1,
+        max = 30,
+        displayPrevious = TRUE,
+        lineCap = "round",
+        fgColor = "#428BCA",
+        inputColor = "#428BCA",
+        width = 150,
+        height = 150)
+    })
+    
+    
+    output$initial_wealth <- renderUI({
+      if (sim$resetindicator == 0) {
+        ID2 <- "initial_wealth"
+      } else {
+        ID2 <- "uselessID2"
+      }
+      
+      if (is.null(input$initial_wealth) || is.na(input$initial_wealth)) {
+        val1 <- 10000
+      } else if (input$initial_wealth == 0) {
+        val1 <- 10000
+      } else if (input$initial_wealth < 0) {
+        val1 <- abs(input$initial_wealth)
+      } else if (input$initial_wealth > 0) {
+        val1 <- input$initial_wealth
+      }
+      
+      numericInput(inputId = ID2,
+                   "How much money would you like to invest?:",
+                   value = val1,
+                   min = 0,
+                   max = NA)
+    })
+    
+    output$play <- renderUI({
+      if (sim$resetindicator == 0 || sim$resetindicator1 == 1) {
+        ID3 <- "play"
+        design <- "primary"
+        icn <- icon("play")
+      } else if (sim$resetindicator1 == 0) {
+        ID3 <- "stop"
+        design <- "warning"
+        icn <- icon("pause")
+      }
+      
+      actionBttn(
+        inputId = ID3,
+        label = NULL,
+        style = "material-circle",
+        color = design,
+        icon = icn
+      )
+    })
+    
+    observeEvent(input$stop,{
+      sim$resetindicator1 <- 1
+    })
+    
+    observeEvent(input$play,{
+      sim$resetindicator1 <- 0
     })
 
 ### dynamic start button label #################################################
     
     output$startbutton <- renderUI({
-      if (sum(sim$data) == 0) {
-        lbl2 <- "Start"
-        
-      } else {
-        lbl2 <- "Next Draw"
-      }
-      actionButton("nextdraw", label = lbl2)
+      actionBttn(
+        inputId = "nextdraw",
+        label = NULL,
+        style = "material-circle",
+        color = "success",
+        icon = icon("step-forward")
+      )
     })
-
+    
 ### Random draw function for individual draws ##################################
     
     rand_draw <- function() {
@@ -525,30 +571,25 @@ server <- function(input, output, session) {
 ################################################################################
         
         output$distPlot <- renderPlot({
+          
           if (sum(sim$data) == 0) {
             return() # no plot if reset everything was reset
             
-          } else if (length(sim$data) == 300) {
+          } else if (length(sim$data) > 300) {
             # automatically reset after # draws to exit
             sim$resetindicator <- 0
             sim$numb <- c(0)
             sim$data <- c(0)
-            #session1$timer<-reactiveTimer(Inf)
           }
           
-          hist(
-            sim$data[sim$data < input$initial_wealth * 5],
-            breaks = seq(
-              from = 0,
-              to = (input$initial_wealth * 5),
-              by = (input$initial_wealth * 5) / 30
-            ),
-            
-            xlim = c(0, input$initial_wealth * 5),
-            ylim = c(0, 100),
-            xlab = "Terminal Wealth",
-            main = "Potential Evolvement of Wealth"
-          )
+          hist(sim$data[sim$data < input$initial_wealth * input$rpref * 6],
+               breaks = seq(from = 0, to = (input$initial_wealth * 
+                                              input$rpref * 6),
+                            by = (input$initial_wealth * input$rpref * 6) / 30),
+               xlim = c(0, input$initial_wealth * input$rpref * 6),
+               ylim = c(0, 200),
+               xlab = "Terminal Wealth",
+               main = "Potential Evolvement of Wealth")
           
           grid()
           
@@ -622,13 +663,13 @@ server <- function(input, output, session) {
           hist(
             sim$terminal_wealth[sim$terminal_wealth >= 0 &
                                   sim$terminal_wealth <
-                                  input$initial_wealth * 5],
+                                  input$initial_wealth * 7],
             breaks = seq(
               from = 0,
-              to = (input$initial_wealth * 5),
-              by = (input$initial_wealth * 5) / 30
+              to = (input$initial_wealth * 7),
+              by = (input$initial_wealth * 7) / 30
             ),
-            xlim = c(0, input$initial_wealth * 5),
+            xlim = c(0, input$initial_wealth * 7),
             xlab = "Terminal Wealth",
             main = "Potential Evolvement of Wealth"
           )
@@ -734,34 +775,34 @@ server <- function(input, output, session) {
           if (!("NorthAmerica" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("US", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Europe" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("EU", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Asia" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("AS", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Africa" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Africa", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Australia" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Australia", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if (!("Latinamerica" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
-            }
+          }
           
           # if (!("Antarctica" %in% input$mymap_groups)) {
           #   data <- data[ , -which(names(data) %in%
@@ -773,96 +814,101 @@ server <- function(input, output, session) {
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
           
+      if (("NorthAmerica" %in% input$mymap_groups) || 
+          ("Europe" %in% input$mymap_groups) || 
+          ("Asia" %in% input$mymap_groups)) {
+          
           if ("banks" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("banks", names(data), value = TRUE))]
-            }
+          }
           
           if ("resources" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("resources", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("chemicals" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("chemicals", names(data),
                                           value = TRUE))]
-            }
-
+          }
+          
           if ("construction" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("construction", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("financials" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("financials", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("food" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("food", names(data), value = TRUE))]
-            }
+          }
           
           if ("health" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("health", names(data), value = TRUE))]
-            }
+          }
           
           if ("industrial" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("industrial", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("insurance" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("insurance", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("energy" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("energy", names(data), value = TRUE))]
-            }
+          }
           
           if ("personal" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("personal", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("retail" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("retail", names(data), value = TRUE))]
-            }
+          }
           
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("tech", names(data), value = TRUE))]
-            }
+          }
           
           if ("telecom" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("telecom", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("travel" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("travel", names(data), value = TRUE))]
-            }
+          }
           
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("utilities", names(data),
                                           value = TRUE))]
-            }
-          
-          data
+          }
+      }
+        
+        data
           
 ######### End of subsetting, where the data is used for the table ##############
 ################################################################################
@@ -889,34 +935,34 @@ server <- function(input, output, session) {
           if (!("NorthAmerica" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("US", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Europe" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("EU", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Asia" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("AS", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Africa" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Africa", names(data), value = TRUE))]
-            }
+          }
           
           if (!("Australia" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Australia", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if (!("Latinamerica" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
-            }
+          }
           
           # if (!("Antarctica" %in% input$mymap_groups)) {
           #   data <- data[ , -which(names(data) %in%
@@ -928,113 +974,106 @@ server <- function(input, output, session) {
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
           
+        if (("NorthAmerica" %in% input$mymap_groups) || 
+            ("Europe" %in% input$mymap_groups) || 
+            ("Asia" %in% input$mymap_groups)) {
+          
           if ("banks" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("banks", names(data), value = TRUE))]
-            }
+          }
           
           if ("resources" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("resources", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("chemicals" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("chemicals", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("construction" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("construction", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("financials" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("financials", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("food" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
-                                     grep("food", names(data),
-                                          value = TRUE))]
-            }
+                                     grep("food", names(data), value = TRUE))]
+          }
           
           if ("health" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("health", names(data), value = TRUE))]
-            }
+          }
           
           if ("industrial" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("industrial", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("insurance" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("insurance", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("energy" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("energy", names(data), value = TRUE))]
-            }
+          }
           
           if ("personal" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("personal", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("retail" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("retail", names(data), value = TRUE))]
-            }
+          }
           
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("tech", names(data), value = TRUE))]
-            }
+          }
           
           if ("telecom" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("telecom", names(data),
                                           value = TRUE))]
-            }
+          }
           
           if ("travel" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("travel", names(data), value = TRUE))]
-            }
+          }
           
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("utilities", names(data),
                                           value = TRUE))]
-            }
-          
-          data
+          }
+        }
+        
+        data
           
 ######### End of subsetting, where the data is used for PF building ############
 ################################################################################
           })
 
-    
-    # output$testgraph <- renderPlot({
-    # 
-    #   data <- newData()
-    # 
-    #   graph <- plot.ts(data[, -1])
-    # 
-    #   return(graph)
-    # 
-    # })
-    
 
 ####### Initiation of the map, where the user can (de)select regions ###########
 ################################################################################
@@ -1694,7 +1733,7 @@ server <- function(input, output, session) {
         
       }
       
-      ########################## Pure Equity² #########################
+      ########################## Pure Equity? #########################
       if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
           (input$rpref2 == 7 && input$inv_horizon <= 5) ||
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
