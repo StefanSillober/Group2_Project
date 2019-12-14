@@ -1582,11 +1582,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1, col = "Your Portfolio"),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1, col = "MSCI World Benchmark"),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Short Bond Portfolio") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                           "MSCI World Benchmark"="grey"))+
+          theme(legend.position=c(.9,.1))
           theme_minimal()
       }
 
@@ -1606,11 +1611,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Long Bond Portfolio") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
           theme_minimal()
       }
 
@@ -1637,12 +1647,17 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
 
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
                title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
-          theme_minimal()
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
+        theme_minimal()
 
         }
 
@@ -1664,11 +1679,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Sharpe Ratio optimized Equity Portfolio with 80% Longterm Debt") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
           theme_minimal()
 
         equityinvestment <<- 0.2
@@ -1700,11 +1720,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Risk Parity Portfolio with Sharpe Ratio optimized Equity Part") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
           theme_minimal()
 
       }
@@ -1729,11 +1754,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Sharpe Ratio optimized Equity Portfolio with 20% Longterm Debt") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
           theme_minimal()
 
       }
@@ -1756,11 +1786,16 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(portfolioplot,benchmark)
         
         plotfinal <- ggplot()+
-          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
-          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
-          labs(x = "Year", y = "Your Portfolio",
-               title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years") +
+          geom_line(data = portfolioplot, aes(
+            Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
+          geom_line(data = portfolioplot, aes(
+            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size = 1) +
+          labs(x = "Year", y = "Portfoliodevelopement",
+               title = "Sharpe Ratio optimized 100% Equity Portfolio") +
+          scale_x_date(date_breaks = "2 years")+
+          scale_colour_manual("", values = c("Your Portfolio"="blue", 
+                                             "MSCI World Benchmark"="grey")) +
+          theme(legend.position=c(.9,.1))
           theme_minimal()
       }
       plotfinal
