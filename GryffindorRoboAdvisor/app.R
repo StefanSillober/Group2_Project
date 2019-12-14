@@ -1502,7 +1502,9 @@ server <- function(input, output, session) {
 ##### Dataspliting and optimizing###############################################
 ################################################################################
 
-    datasplit <- function(subdata,updateProgress = NULL){
+    datasplit <- function(subdata, updateProgress = NULL){
+      if (ncol(subdata) > 15) {
+        
       flor <- floor(ncol(subdata) / 15)
       remaining <- ncol(subdata) - 15 * flor
       lastdata <- flor + 1
@@ -1514,7 +1516,7 @@ server <- function(input, output, session) {
       }
 
       data.lastdata <- subdata[(flor * 15):ncol(subdata)]
-      assign(as.character(paste("data", as.character((flor + 1)), sep="")),
+      assign(as.character(paste("data", as.character((flor + 1)), sep = "")),
              data.lastdata)
 
       finaldata <- data.frame(matrix(nrow = nrow(subdata)))[, -1]
@@ -1524,7 +1526,8 @@ server <- function(input, output, session) {
       for (n in 1:(flor + 1)){
 
         dataopt<- minvarpf(get(paste("data", n, sep = "")))
-        assign(as.character(paste("dataopt", as.character(n), sep="")), dataopt)
+        assign(as.character(paste("dataopt", as.character(n), 
+                                  sep = "")), dataopt)
 
         if (is.function(updateProgress)) {
           text <- "Please don't turn off your Computer"
@@ -1535,6 +1538,10 @@ server <- function(input, output, session) {
         finaldata <- cbind(finaldata,dataopt)
       }
       return(finaldata)
+      } else {
+        finaldata <- subdata
+        return(finaldata)
+      }
 ### End of Dataspliting function #################################
     }
 
