@@ -4,6 +4,7 @@ library(tidyverse)
 library(rlist)
 library(jsonlite)
 library(rtsdata)
+library(gryffindorrobo)
 
 
 use_python(Sys.which("python"))
@@ -136,16 +137,52 @@ AS <- data_scrap_ltd(ind_stocks_asia, inds_asia, 'world',
 # historical data load for US and Asia exceeding the limit of investing.com
 #datastatic <- read.csv("staticdata/histstock.csv", sep=";")
 
+
+#Data for portfolioconstruction
 Africa <- as.data.frame(ds.getSymbol.yahoo("EZA", from = "2006-12-08", to = Sys.Date())[,6])
 Australia <- as.data.frame(ds.getSymbol.yahoo("EWA", from = "2006-12-08", to = Sys.Date())[,6])
 Latinamerica <- as.data.frame(ds.getSymbol.yahoo("ILF", from = "2006-12-08", to = Sys.Date())[,6])
 Commodities <- as.data.frame(ds.getSymbol.yahoo("IAU", from = "2006-12-08", to = Sys.Date())[,6])
 LongBond <- as.data.frame(ds.getSymbol.yahoo("TLT", from = "2006-12-08", to = Sys.Date())[,6])
 ShortBond <- as.data.frame(ds.getSymbol.yahoo("TIP", from = "2006-12-08", to = Sys.Date())[,6])
+# Data for Benchmark
+sp500 <- as.data.frame(ds.getSymbol.yahoo("^GSPC", from = "2006-12-08", to = Sys.Date())[,6])
+stoxx <- as.data.frame(ds.getSymbol.yahoo("FEZ", from = "2006-12-08", to = Sys.Date())[,6])
+asia <- as.data.frame(ds.getSymbol.yahoo("VPL", from = "2006-12-08", to = Sys.Date())[,6])
+
+benchmarklist <- list(sp500, stoxx, asia)
 
 
-indices = c("Africa", "Australia", "Latinamerica", "Commodities", "LongBond", "ShortBond")
-dflist <- list(Africa, Australia, Latinamerica, Commodities, LongBond, ShortBond)
+for (c in (1:(length(benchmarklist)-1))) {
+  
+  if(c == 1){
+    databenchmark <- benchmarklist[1]
+    databenchmark <- merge.data.frame(databenchmark, benchmarklist[c+1], by = "row.names")
+    rownames(databenchmark) <- databenchmark[,1]
+    databenchmark <- databenchmark[,-1]
+  }
+  else{
+    databenchmark <- merge.data.frame(databenchmark, benchmarklist[c+1], by = "row.names")
+    rownames(databenchmark) <- databenchmark[,1]
+    databenchmark <- databenchmark[,-1]
+  }
+}
+
+for (c in 1:ncol(databenchmark)) {
+  databenchmark[,c] <- indexpf(as.data.frame(databenchmark[,c]))
+}
+
+benchmark <- as.data.frame(matrix(data = NA, ncol = 1, nrow=nrow(databenchmark)))
+weights <- c(0.4,0.3,0.3)
+
+for (r in 1:nrow(databenchmark)) {
+  benchmark[r,1] <- as.numeric(as.matrix(databenchmark[r,]) %*% as.matrix(weights))
+}
+
+rownames(benchmark) <- rownames(sp500)
+
+indices = c("Africa", "Australia", "Latinamerica", "Commodities", "LongBond", "ShortBond", "Benchmark")
+dflist <- list(Africa, Australia, Latinamerica, Commodities, LongBond, ShortBond, benchmark)
 
 
 for (c in (1:(length(dflist)-1))) {

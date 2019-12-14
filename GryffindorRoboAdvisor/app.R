@@ -1649,7 +1649,8 @@ server <- function(input, output, session) {
 
         longbondindexed <- indexpf(as.data.frame(longbond))
         portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.2)
-
+        
+        
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
