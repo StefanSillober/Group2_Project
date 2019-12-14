@@ -132,9 +132,9 @@ AS <- data_scrap_ltd(ind_stocks_asia, inds_asia, 'world',
                  invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")
 
 # historical data load for US and Asia exceeding the limit of investing.com
-datastatic <- read.csv("histstock.csv", sep=";")
-as_static <- read.csv("as.csv", sep = ';')
-us_static <- read.csv("us.csv", sep = ";")
+datastatic <- read.csv("staticdata/histstock.csv", sep=";")
+as_static <- read.csv("staticdata/as.csv", sep = ';')
+us_static <- read.csv("staticdata/us.csv", sep = ";")
 us_static[-c(1)] <- lapply( us_static[-c(1)], function(x) as.numeric(x))
 US_final <- bind_rows(US, us_static)
 
