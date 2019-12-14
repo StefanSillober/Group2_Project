@@ -828,8 +828,8 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
 
-        source("robodata.R")
-        #load("staticdata/datas.RData")
+        #source("robodata.R")
+        load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -1296,6 +1296,7 @@ server <- function(input, output, session) {
       if (input$rpref2 == 1 && input$inv_horizon <= 5) {
 
         portfoliofinal <<- indexpf(as.data.frame(shortbond))
+        equityinvestment <<- 0
 
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
@@ -1359,7 +1360,7 @@ server <- function(input, output, session) {
 ####### split the required input df into sub-df's to make them optimizable #####
         finaldata <- datasplit(newData(),updateProgress)
         portfoliofinal <<- minvarpf(finaldata)
-        equityinvestment <<- 0
+        equityinvestment <<- 1
 
 ####### include the performance plot in Shiny ##################################
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
@@ -1392,7 +1393,7 @@ server <- function(input, output, session) {
         finalpf <- optimpf(finaldata)
 
         longbondindexed <- indexpf(as.data.frame(longbond))
-        portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.2)
+        portfoliofinal <<- equityanddebtpf(finalpf, longbondindexed, 0.2)
         
         
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
@@ -1466,10 +1467,10 @@ server <- function(input, output, session) {
         finalpf <- optimpf(finaldata)
 
         longbondindexed <- indexpf(as.data.frame(longbond))
-        portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.8)
+        portfoliofinal <<- equityanddebtpf(finalpf, longbondindexed, 0.8)
         equityinvestment <<- 0.8
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
