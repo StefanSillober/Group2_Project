@@ -20,7 +20,9 @@ library(markdown)
 library(rmarkdown)
 library(shinycssloaders)
 library(ggplot2)
+#install_github("MatthiasSpeicher/gryffindorrobo")
 library(gryffindorrobo)
+
 
 
 header <- dashboardHeader(
@@ -772,7 +774,7 @@ server <- function(input, output, session) {
 
 ######### Subsetting by region - the user chooses the region(s) he or she ######
 ######### does not want to invest in ###########################################
-          if (!("NorthAmerica" %in% input$mymap_groups)) {
+           if (!("North America" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("US", names(data), value = TRUE))]
           }
@@ -792,13 +794,13 @@ server <- function(input, output, session) {
                                      grep("Africa", names(data), value = TRUE))]
           }
 
-          if (!("Australia" %in% input$mymap_groups)) {
+          if (!("Oceania" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Australia", names(data),
                                           value = TRUE))]
           }
 
-          if (!("Latinamerica" %in% input$mymap_groups)) {
+          if (!("Latin America" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
@@ -814,7 +816,7 @@ server <- function(input, output, session) {
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
 
-      if (("NorthAmerica" %in% input$mymap_groups) ||
+      if (("North America" %in% input$mymap_groups) ||
           ("Europe" %in% input$mymap_groups) ||
           ("Asia" %in% input$mymap_groups)) {
 
@@ -932,7 +934,7 @@ server <- function(input, output, session) {
 ######### Subsetting by region - the user selects the region he or she does not
 ######### want to be invested in ###############################################
 
-          if (!("NorthAmerica" %in% input$mymap_groups)) {
+          if (!("North America" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("US", names(data), value = TRUE))]
           }
@@ -958,7 +960,7 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if (!("Latinamerica" %in% input$mymap_groups)) {
+          if (!("Latin America" %in% input$mymap_groups)) {
             data <- data[ , -which(names(data) %in%
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
@@ -974,7 +976,7 @@ server <- function(input, output, session) {
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
 
-        if (("NorthAmerica" %in% input$mymap_groups) ||
+        if (("North America" %in% input$mymap_groups) ||
             ("Europe" %in% input$mymap_groups) ||
             ("Asia" %in% input$mymap_groups)) {
 
@@ -1092,9 +1094,9 @@ server <- function(input, output, session) {
                     "Antarctica",
                     "Asia",
                     "Europe",
-                    "NorthAmerica",
+                    "North America",
                     "Oceania",
-                    "Latinamerica")
+                    "Latin America")
 
         colors <- c("red", "blue", "green", "yellow",
                     "purple", "turquoise", "grey")
@@ -1121,7 +1123,7 @@ server <- function(input, output, session) {
 
         foundmap <- leaflet() %>%
 
-        setView(lng = 0, lat = 30, zoom = 2) %>%
+        setView(lng = 0, lat = 30, zoom = 1.5) %>%
 
         addProviderTiles(providers$Stamen.TonerLite,
                          options = providerTileOptions(noWrap = TRUE))
@@ -1152,7 +1154,8 @@ server <- function(input, output, session) {
 
         foundmap <- foundmap %>%
           addLayersControl(overlayGroups = groups,
-                           options = layersControlOptions(collapsed = FALSE))
+                           options = layersControlOptions(collapsed = FALSE)) %>% hideGroup("Antarctica")
+          
 
 
 ####### integrate the map into shiny ###########################################
@@ -1524,7 +1527,7 @@ server <- function(input, output, session) {
         assign(as.character(paste("dataopt", as.character(n), sep="")), dataopt)
 
         if (is.function(updateProgress)) {
-          text <- "Pleas don't turn off your Computer"
+          text <- "Please don't turn off your Computer"
           updateProgress(detail = text)
         }
 
@@ -1746,7 +1749,7 @@ server <- function(input, output, session) {
     output$downloadReport <- downloadHandler(
 
       filename <- function() {
-        paste("my-report",
+        paste("PF-Factsheet",
               sep = '.',
               switch(input$format,
                      PDF = "pdf",
@@ -2023,17 +2026,30 @@ server <- function(input, output, session) {
 
     observeEvent( # include error message, when all regions are deselected #####
         input$button5, {
-          if (is.null(input$mymap_groups)) {
+          if ("Antarctica" %in% input$mymap_groups) {
+            sendSweetAlert(
+              session = session,
+              title = "No investment in Penguin-Land",
+              text = tags$embed(src = "https://media.giphy.com/media/jxETRYAi2KReel7pqy/giphy.gif", width = "450px", height = "500px")
+            )
+          } else if (length(input$mymap_groups) < 3 && 
+              (!("North America" %in% input$mymap_groups) &&
+              !("Europe" %in% input$mymap_groups) &&
+              !("Asia" %in% input$mymap_groups))) {
             sendSweetAlert(
               session = session,
               title = "Error Message",
-              text = "Please select at least one region!",
+              text = "For diversification purposes, please select more inputs",
               type = "error"
             )
           } else {
             newtab <- switch(input$tabs, "tab3" = "tab4")
             updateTabItems(session, "tabs", newtab)
           }
+          
+          
+          
+          
         }
     )
 
