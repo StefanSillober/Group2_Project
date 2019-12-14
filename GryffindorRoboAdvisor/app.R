@@ -333,13 +333,10 @@ body <- dashboardBody(
                         "Health" = "health",
                         "Industrial" = "industrial",
                         "Insurance" = "insurance",
-                        "Media" = "media",
                         "Energy" = "energy",
                         "Personal" = "personal",
-                        "Retail" = "retail",
                         "Tech" = "tech",
                         "Telecom" = "telecom",
-                        "Travel" = "travel",
                         "Utilities" = "utilities"
                       ),
 
@@ -893,13 +890,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          # if (!("Antarctica" %in% input$mymap_groups)) {
-          #   data <- data[ , -which(names(data) %in%
-          #                            grep("Antarctica", names(data),
-          #                                 value = TRUE))]
-          #   }
-
-
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
 
@@ -969,10 +959,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("retail" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("retail", names(data), value = TRUE))]
-          }
 
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
@@ -985,10 +971,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("travel" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("travel", names(data), value = TRUE))]
-          }
 
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
@@ -1129,11 +1111,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("retail" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("retail", names(data), value = TRUE))]
-          }
-
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("tech", names(data), value = TRUE))]
@@ -1145,10 +1122,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("travel" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("travel", names(data), value = TRUE))]
-          }
 
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
