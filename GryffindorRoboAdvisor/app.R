@@ -746,7 +746,7 @@ server <- function(input, output, session) {
 ######## in a seperate file ###################################################
 
         source("robodata.R")
-        #load("datas.RData")
+        #load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -1665,7 +1665,7 @@ server <- function(input, output, session) {
         equityinvestment <<- 0.2
       }
 
-      ######################### risk parity ############################
+############################ risk parity #######################################
       if ((input$rpref2 == 4 && input$inv_horizon <= 5) ||
          (input$rpref2 == 5 && input$inv_horizon <= 5) ||
          (input$rpref2 == 4 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
@@ -1698,7 +1698,7 @@ server <- function(input, output, session) {
 
       }
 
-      ########################### equity + longbond overweight equity ########
+########################### equity + longbond overweight equity ################
       if ((input$rpref2 == 6 && input$inv_horizon <= 5) ||
          (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
@@ -1719,13 +1719,14 @@ server <- function(input, output, session) {
         plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
           geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Equity and Longtherm Maturity Bonds Portfolio with overwight in equity") +
+               title = "Equity and Longtherm Maturity Bonds
+               Portfolio with overwight in equity") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
 
       }
 
-      ########################## Pure Equity? #########################
+################################ Pure Equity? ##################################
       if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
           (input$rpref2 == 7 && input$inv_horizon <= 5) ||
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
@@ -1799,7 +1800,8 @@ server <- function(input, output, session) {
     output$expectedValue <- renderValueBox({
       valueBox(
 
-        paste0(round((1+(averagereturn(portfoliofinal)*input$inv_horizon))*input$initial_wealth), "$"),
+        paste0(round((1 + (averagereturn(portfoliofinal) * input$inv_horizon)) *
+                       input$initial_wealth), "$"),
         paste0("Expected wealth after ", input$inv_horizon, " years" ),
         icon = icon("hand-holding-usd"),
         color = "blue"
@@ -1808,7 +1810,7 @@ server <- function(input, output, session) {
 
     output$yearlygain <- renderValueBox({
       valueBox(
-        paste0(round((averagereturn(portfoliofinal)*100)), "%"),
+        paste0(round((averagereturn(portfoliofinal) * 100)), "%"),
         "Expected yearly gain",
         icon = icon("chart-line"),
         color = "green"
@@ -1817,7 +1819,7 @@ server <- function(input, output, session) {
 
     output$maxdrawdown <- renderValueBox({
       valueBox(
-        paste0(round((maxdrawdown(portfoliofinal)*100)), "%"),
+        paste0(round((maxdrawdown(portfoliofinal) * 100)), "%"),
         "Maxdrawdown",
         icon = icon("greater-than"),
         color = "red"
@@ -1826,7 +1828,7 @@ server <- function(input, output, session) {
 
     output$std <- renderValueBox({
       valueBox(
-        paste0(round((yearlystd(portfoliofinal)*100)), "%"),
+        paste0(round((yearlystd(portfoliofinal) * 100)), "%"),
         "Standarddeviation",
         icon = icon("square-root-alt"),
         color = "yellow"
@@ -1836,7 +1838,7 @@ server <- function(input, output, session) {
 
     output$sharpe <- renderValueBox({
       valueBox(
-        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)),2),
+        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)), 2),
         "Sharpe Ratio",
         icon = icon("hourglass-half"),
         color = "orange"
@@ -1845,7 +1847,7 @@ server <- function(input, output, session) {
 
     output$equity <- renderValueBox({
       valueBox(
-        paste0(round(equityinvestment*100,2), "%"),
+        paste0(round(equityinvestment * 100, 2), "%"),
         "Invested in Equity",
         icon = icon("hand-holding-usd"),
         color = "purple"
@@ -2037,7 +2039,9 @@ server <- function(input, output, session) {
             sendSweetAlert(
               session = session,
               title = "No investment in Penguin-Land",
-              text = tags$embed(src = "https://media.giphy.com/media/jxETRYAi2KReel7pqy/giphy.gif", width = "450px", height = "500px")
+              text = tags$embed(src = "https://media.giphy.com/media/jxETRYAi2KReel7pqy/giphy.gif",
+                                width = "450px",
+                                height = "500px")
             )
           } else if (length(input$mymap_groups) < 3 && 
               (!("North America" %in% input$mymap_groups) &&
@@ -2046,7 +2050,7 @@ server <- function(input, output, session) {
             sendSweetAlert(
               session = session,
               title = "Error Message",
-              text = "For diversification purposes, please select more inputs",
+              text = "For diversification purposes, please select more inputs.",
               type = "error"
             )
           } else {
