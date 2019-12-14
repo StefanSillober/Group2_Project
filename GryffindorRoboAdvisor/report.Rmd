@@ -263,8 +263,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
 
 ```{r echo = FALSE, results='asis'}
 if (input$rpref2 == 1 && input$inv_horizon <= 5) {
-  cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+  cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified a pure bond investment as the most
       suitable for you.")
 
@@ -276,8 +275,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
       if ((input$rpref2 == 2 && input$inv_horizon <= 5) ||
           (input$rpref2 == 1 && input$inv_horizon > 5 &&
            input$inv_horizon <= 10)) {
-       cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+       cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified a pure bond investment as the most
       suitable for you.")
 
@@ -293,8 +291,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
           (input$rpref2 == 2 && input$inv_horizon > 10)) {
 
 ####### split the required input df into sub-df's to make them optimizable #####
-        cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+        cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified a minimum variacne investment as the most
       suitable for you.")
 
@@ -303,8 +300,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
 ###### Equity + longbond overweight bond #######################################
 
       if (input$rpref2 == 1 && input$inv_horizon > 10) {
-        cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+        cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified an equity and long bond investment as the most
       suitable for you, where bond are overweighted.")
 
@@ -318,8 +314,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
          (input$rpref2 == 5 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 3 && input$inv_horizon > 10) ||
          (input$rpref2 == 4 && input$inv_horizon > 10)) {
-        cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+        cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified a risk parity investment strategy as the most
       suitable for you.")
 
@@ -331,8 +326,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
       if ((input$rpref2 == 6 && input$inv_horizon <= 5) ||
          (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
-          cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+          cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified an equity and long bond investment as the most
       suitable for you, where equity is overweighted.")
 
@@ -345,8 +339,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
           (input$rpref2 == 7 && input$inv_horizon <= 5) ||
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
           (input$rpref2 == 7 && input$inv_horizon > 10)) {
-        cat("You have chosen a risk preference of level", input$rpref2, ", corresponding to a yearly
-      SD of XY, and an investment horizon of", input$inv_horizon, "years. According to these
+        cat("You have chosen a risk preference of level", input$rpref2, ", and an investment horizon of", input$inv_horizon, "years. According to these
       specifications we have identified a pure equity investment as the most
       suitable for you.")
 
@@ -358,7 +351,7 @@ if (input$rpref2 == 1 && input$inv_horizon <= 5) {
 for you has had an average return of `r paste0(round((averagereturn(portfoliofinal) * 100)), "%")` 
 and a yearly standard derviation of `r paste0(round((yearlystd(portfoliofinal) * 100)), "%")`. 
 This means that after `r input$inv_horizon` years, i.e. the investment horizon that you have
-specified, you can expect a terminal wealth of `r round(((1+(averagereturn(portfoliofinal)))^input$inv_horizon)*input$initial_wealth)`.
+specified, you can expect a terminal wealth of `r as.character(round(((1+(averagereturn(portfoliofinal)))^input$inv_horizon)*input$initial_wealth))`.
 Regarding downside risk, the portfolio has experienced a maximum drawdown of `r paste0(round((maxdrawdown(portfoliofinal) * 100)), "%")`, indicating the maximum
 loss that has historically occured. Finally, the portfolio has a sharpe ratio of
 `r round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)), 2)`, which shows
