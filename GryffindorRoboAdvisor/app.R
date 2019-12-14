@@ -831,8 +831,8 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
 
-        #source("robodata.R")
-        load("staticdata/datas.RData")
+        source("robodata.R")
+        #load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -840,11 +840,11 @@ server <- function(input, output, session) {
 ####### different equity indices. ##############################################
 
         dates <- ovr[, 1]
-        commodities <- ovr[, 56]
-        longbond <- ovr[, 57]
-        shortbond <- ovr[, 58]
-        benchmark <- ovr[, 59]
-        data <- ovr[, -c(1, 56:59)]
+        commodities <- ovr[, 47]
+        longbond <- ovr[, 48]
+        shortbond <- ovr[, 49]
+        benchmark <- ovr[, 50]
+        data <- ovr[, -c(1, 47:50)]
 
 ####### in order to make the data frame subsettable, it must be in an reactive #
 ####### enviornment. ###########################################################
@@ -857,7 +857,7 @@ server <- function(input, output, session) {
 ######### due to syntax of reactive datas, the subsetting has to happen within #
 ######### as well as outside the reactive enviornment ##########################
 
-          data <- ovr[, -c(1, 56:59)]
+          data <- ovr[, -c(1, 47:50)]
 
 ######### Subsetting by region - the user chooses the region(s) he or she ######
 ######### does not want to invest in ###########################################
@@ -1009,14 +1009,14 @@ server <- function(input, output, session) {
 
 ####### Get webscraped Data (the ovr file from the scrapping script) ###########
 
-        data <- ovr[, -c(1, 56:59)]
+        data <- ovr[, -c(1, 47:50)]
 
 ####### use the data frame in a reactive enviornment ###########################
 
         newData <- reactive({
 ######### Again, the data has to be used within and outside the reactive #######
 ######### enviornment. #########################################################
-          data <- ovr[, -c(1, 56:59)]
+          data <- ovr[, -c(1, 47:50)]
 
 ######### Subsetting by region - the user selects the region he or she does not
 ######### want to be invested in ###############################################
