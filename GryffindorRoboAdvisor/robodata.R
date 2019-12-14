@@ -18,13 +18,10 @@ ind_stocks_eu <- list('iShares STOXX Europe 600 Banks UCITS',
                       'iShares STOXX Europe 600 Health Care UCITS',
                       'iShares STOXX Europe 600 Industrial Goods & Servic',
                       'iShares STOXX Europe 600 Insurance UCITS',
-                      'iShares STOXX Europe 600 Media UCITS',
                       'iShares STOXX Europe 600 Oil & Gas UCITS',
                       'iShares STOXX Europe 600 Personal & Household Good',
-                      'iShares STOXX Europe 600 Retail UCITS',
                       'iShares STOXX Europe 600 Technology UCITS',
                       'iShares STOXX Europe 600 Telecommunications UCITS',
-                      'iShares STOXX Europe 600 Travel & Leisure UCITS',
                       'iShares STOXX Europe 600 Utilities UCITS')
 
 ind_stocks_us <- list('STOXX North America 600 Banks USD Price',
@@ -36,14 +33,12 @@ ind_stocks_us <- list('STOXX North America 600 Banks USD Price',
                       'STOXX North America 600 Health Care USD Price',
                       'STOXX North America 600 Industrial Goods & Service',
                       'STOXX North America 600 Insurance USD Price',
-                      'STOXX North America 600 Media USD Price',
                       'STOXX North America 600 Oil & Gas USD Price',
                       'STOXX North America 600 Personal & Household Goods',
-                      'STOXX North America 600 Retail USD Price',
                       'STOXX North America 600 Technology USD Price',
                       'STOXX North America 600 Telecommunications USD Pri',
-                      'STOXX North America 600 Travel & Leisure USD Price',
                       'STOXX North America 600 Utilities USD Price')
+
 ind_stocks_asia <- list('STOXX Asia/Pacific 600 Banks USD Price',
                         'STOXX Asia/Pacific 600 Basic Resources USD Price',
                         'STOXX Asia/Pacific 600 Chemicals USD Price',
@@ -53,30 +48,27 @@ ind_stocks_asia <- list('STOXX Asia/Pacific 600 Banks USD Price',
                         'STOXX Asia/Pacific 600 Health Care USD Price',
                         'STOXX Asia/Pacific 600 Industrial Goods & Services',
                         'STOXX Asia/Pacific 600 Insurance USD Price',
-                        'STOXX Asia/Pacific 600 Media USD Price',
                         'STOXX Asia/Pacific 600 Oil & Gas USD Price',
                         'STOXX Asia/Pacific 600 Personal & Household Goods',
-                        'STOXX Asia/Pacific 600 Retail USD Price',
                         'STOXX Asia/Pacific 600 Technology USD Price',
                         'STOXX Asia/Pacific 600 Telecommunications USD Pric',
-                        'STOXX Asia/Pacific 600 Travel & Leisure USD Price',
                         'STOXX Asia/Pacific 600 Utilities USD Price')
 
 inds_eu <- list("EU_banks", "EU_resources", "EU_chemicals",
                 "EU_construction","EU_financials", "EU_food","EU_health",
-                "EU_industrial","EU_insurance", "EU_media", "EU_energy",
-                "EU_personal", "EU_retail", "EU_tech", "EU_telecom",
-                "EU_travel", "EU_utilities")
+                "EU_industrial","EU_insurance", "EU_energy",
+                "EU_personal", "EU_tech", "EU_telecom",
+                "EU_utilities")
 inds_us <- list("US_banks", "US_resources", "US_chemicals",
                 "US_construction","US_financials", "US_food","US_health", 
-                "US_industrial","US_insurance", "US_media", "US_energy",
-                "US_personal", "US_retail", "US_tech", "US_telecom",
-                "US_travel", "US_utilities")
+                "US_industrial","US_insurance", "US_energy",
+                "US_personal", "US_tech", "US_telecom",
+                "US_utilities")
 inds_asia <- list("AS_banks", "AS_resources", "AS_chemicals",
                   "AS_construction","AS_financials", "AS_food","AS_health", 
-                  "AS_industrial","AS_insurance", "AS_media", "AS_energy",
-                  "AS_personal", "AS_retail", "AS_tech", "AS_telecom",
-                  "AS_travel", "AS_utilities")
+                  "AS_industrial","AS_insurance", "AS_energy",
+                  "AS_personal", "AS_tech", "AS_telecom",
+                  "AS_utilities")
 
 # Main scraping function
 
@@ -206,9 +198,14 @@ datayahoo$Date <- format(as.Date(datayahoo$Date), "%d/%m/%Y")
 
 
 
-
+#Read in data downloaded from Datastream as not everything was available on investing.com
+#Drop three industries as they cause too many missing values in our data
 as_static <- read.csv("staticdata/as.csv", sep = ';')
+as_static[ ,c('AS_media', 'AS_retail', 'AS_travel')] <- list(NULL)
+
 us_static <- read.csv("staticdata/us.csv", sep = ";")
+us_static[ ,c('US_media', 'US_retail', 'US_travel')] <- list(NULL)
+
 us_static[-c(1)] <- lapply( us_static[-c(1)], function(x) as.numeric(x))
 US_final <- bind_rows(US, us_static)
 
