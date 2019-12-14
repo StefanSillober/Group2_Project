@@ -1354,7 +1354,7 @@ server <- function(input, output, session) {
          #redundant but included so that the number of conitions = number of PFs
           (input$rpref2 == 3 && input$inv_horizon > 5 &&
            input$inv_horizon <= 10) ||
-          (input$rpref2 == 2 && input$inv_horizon > 10)) {
+          (input$rpref2 == 2 && input$inv_horizon > 5)) {
 
 ####### split the required input df into sub-df's to make them optimizable #####
         finaldata <- datasplit(newData(),updateProgress)
