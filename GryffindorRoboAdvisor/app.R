@@ -98,15 +98,15 @@ body <- dashboardBody(
                                     column(4,uiOutput("play"))
                              )
                            ),
-                           tags$p("Press the", tags$em("Start"),
-                                  "button in order to initiate the simulation.",
-                                  "Press", tags$em("Next Draw"),
-                                  "in order to see one possible realization.",
-                                  "Use the", tags$em("Play"), "and",
-                                  tags$em("Stop"), "button",
-                                  "in order run the simulation automatically.",
-                                  "Finally use", tags$em("Reset"),
-                                  "in order to start anew.")
+                           tags$p("Press the", tags$em("Play"),
+                                  "button in order to initiate the simulation.
+                                   The button turns yellow. With the",
+                                   tags$em("Pause"), "button you can interrupt
+                                   the simulation and try to press the green
+                                   button in order to see one possible
+                                   realization. Use the red", tags$em("Stop"),
+                                   "button to reset the simulation and start
+                                   anew.")
 
                        ), # end of box (delete ,)
 
@@ -136,8 +136,45 @@ body <- dashboardBody(
 
                        tabPanel(
                          title = tagList(shiny::icon("info"), "Details"),
-                         "Explanation to the return sampling, i.e. GBM,
-                                         90% & 10% VaR ...."
+                         "In order to get a good sense about the risks the
+                         investor is faced with, this graph plots SIMULATED
+                         and therefore POTENTIAL wealth evolvements, using the
+                         paramteres provided.",
+                         br(),
+                         br(),
+                         "The higher the bar corresponding to a certain wealth
+                         level, the more likely will you end up with a final
+                         wealth equal to that amount.
+                         The blue vertical line corresponds to the average
+                         terminal wealth an investor can expect when investing
+                         in the proposed portfolio.",
+                         br(),
+                         br(),
+                         "To get a feeling for the riskyness, also a down- and
+                         upward boundary are included. The red vertical line
+                         indicated the level of wealth the investor can expect
+                         to have at least in 90 out of 100 cases. Please be
+                         aware, that in 10 percent of the cases your terminal
+                         wealth after the investment period will be below this
+                         value.",
+                         br(),
+                         br(),
+                         "The green vertical line on the other hand aims to
+                         indicate the upside potential. Investing in the
+                         proposed portfolio will return a terminal wealth that
+                         is below that threshold in 90 out of 100 cases. However
+                         there is a 10 percent chance that the terminal wealth
+                         lies above this threshold.",
+                         br(),
+                         br(),
+                         "Please note, that these data is not actual historical
+                         stock data, but simulated. The goal of this graph is to
+                         provide an intuitive picture of what may happen to your
+                         initial capital invested at a certain risk level.",
+                         br(),
+                         br(),
+                         "The boxes below this graph summerize some main features
+                         of your investment."
                        )
                      ),
 
@@ -205,7 +242,16 @@ body <- dashboardBody(
                                              height = "500")),
                          tabPanel(title = tagList(shiny::icon("info"),
                                                   "Details"),
-                                  "Explanations ...")
+                                  "The goal of this graph is to facilitate
+                                  the choice of the right risk preference for
+                                  the investor. Essentially it is a copy of the
+                                  graph of the previous plot.",
+                                  br(),
+                                  "In order to get a feeling on how the choice
+                                  of the risk
+                                  preference might impact the final wealth, the
+                                  user might choose different levels of the risk
+                                  preference and take the one that suits best.")
                        ),
 
                        # Dynamic valueBoxes
@@ -243,7 +289,26 @@ body <- dashboardBody(
 
                   tabPanel(
                     title = tagList(shiny::icon("info"), "Details"),
-                    "Explanations about the map and how to use it ...."
+                    "With the ticking boxes on the right hand side of the map
+                    the investor has the possibility to (de)select regions
+                    arround the world he or she does(n't) want to invest in. By
+                    default all countries arround the world are selected. If for
+                    any reason the investor doesn't want exposure to a certain 
+                    region in the portfolio, it might be deselected.",
+                    br(),
+                    br(),
+                    "Please note: for diversification reasons it is
+                    highly recommended not to deselect too many
+                    countries. However, before going to the next tab,
+                    our algorithm will evaluate the potential
+                    diversification possible, with the current selection.
+                    If there is too less diversification potential, you
+                    will be asked to select more regions or sectors
+                    respectively.",
+                    br(),
+                    br(),
+                    "Special Hint: Try out to invest in Antarctica in any case
+                    ;-)"
                   )
                 ),
 
@@ -268,13 +333,10 @@ body <- dashboardBody(
                         "Health" = "health",
                         "Industrial" = "industrial",
                         "Insurance" = "insurance",
-                        "Media" = "media",
                         "Energy" = "energy",
                         "Personal" = "personal",
-                        "Retail" = "retail",
                         "Tech" = "tech",
                         "Telecom" = "telecom",
-                        "Travel" = "travel",
                         "Utilities" = "utilities"
                       ),
 
@@ -289,7 +351,28 @@ body <- dashboardBody(
 
 
                   tabPanel(title = tagList(shiny::icon("info"), "Details"),
-                           "Explanations about the map and how to use it ....")
+                           "Many investors today have preferences towards
+                           certain industries or do not want to (for example for
+                           ethical reasons) do not want to invest in other
+                           sectors. This freedom is enabled with this selection.
+                           By default, the portfolio calculated in the next
+                           step does include all available industries, but the
+                           user can avoid exposure to a certain industry by
+                           pushing it to the right side of the graph.",
+                           br(),
+                           br(),
+                           "By clicking a second time on a deselcted industry,
+                           it is selected again.",
+                           br(),
+                           br(),
+                           "Please note: for diversification reasons it is
+                           highly recommended not to deselect too many
+                           industries. However, before going to the next tab,
+                           our algorithm will evaluate the potential
+                           diversification possible, with the current selection.
+                           If there is too less diversification potential, you
+                           will be asked to select more regions or sectors
+                           respectively.")
                 ),
 
                 hr(style = "border-color: grey;"),
@@ -745,8 +828,8 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
 
-        #source("robodata.R")
-        load("staticdata/datas.RData")
+        source("robodata.R")
+        #load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -754,11 +837,11 @@ server <- function(input, output, session) {
 ####### different equity indices. ##############################################
 
         dates <- ovr[, 1]
-        commodities <- ovr[, 56]
-        longbond <- ovr[, 57]
-        shortbond <- ovr[, 58]
-        benchmark <- ovr[, 59]
-        data <- ovr[, -c(1, 56:59)]
+        commodities <- ovr[, 47]
+        longbond <- ovr[, 48]
+        shortbond <- ovr[, 49]
+        benchmark <- ovr[, 50]
+        data <- ovr[, -c(1, 47:50)]
 
 ####### in order to make the data frame subsettable, it must be in an reactive #
 ####### enviornment. ###########################################################
@@ -771,7 +854,7 @@ server <- function(input, output, session) {
 ######### due to syntax of reactive datas, the subsetting has to happen within #
 ######### as well as outside the reactive enviornment ##########################
 
-          data <- ovr[, -c(1, 56:59)]
+          data <- ovr[, -c(1, 47:50)]
 
 ######### Subsetting by region - the user chooses the region(s) he or she ######
 ######### does not want to invest in ###########################################
@@ -806,13 +889,6 @@ server <- function(input, output, session) {
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
           }
-
-          # if (!("Antarctica" %in% input$mymap_groups)) {
-          #   data <- data[ , -which(names(data) %in%
-          #                            grep("Antarctica", names(data),
-          #                                 value = TRUE))]
-          #   }
-
 
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
@@ -883,10 +959,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("retail" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("retail", names(data), value = TRUE))]
-          }
 
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
@@ -899,10 +971,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("travel" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("travel", names(data), value = TRUE))]
-          }
 
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
@@ -923,14 +991,14 @@ server <- function(input, output, session) {
 
 ####### Get webscraped Data (the ovr file from the scrapping script) ###########
 
-        data <- ovr[, -c(1, 56:59)]
+        data <- ovr[, -c(1, 47:50)]
 
 ####### use the data frame in a reactive enviornment ###########################
 
         newData <- reactive({
 ######### Again, the data has to be used within and outside the reactive #######
 ######### enviornment. #########################################################
-          data <- ovr[, -c(1, 56:59)]
+          data <- ovr[, -c(1, 47:50)]
 
 ######### Subsetting by region - the user selects the region he or she does not
 ######### want to be invested in ###############################################
@@ -1043,11 +1111,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("retail" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("retail", names(data), value = TRUE))]
-          }
-
           if ("tech" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
                                      grep("tech", names(data), value = TRUE))]
@@ -1059,10 +1122,6 @@ server <- function(input, output, session) {
                                           value = TRUE))]
           }
 
-          if ("travel" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("travel", names(data), value = TRUE))]
-          }
 
           if ("utilities" %in% input$industry1) {
             data <- data[ , -which(names(data) %in%
@@ -1249,7 +1308,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Short Bond Portfolio") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1278,7 +1337,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Long Bond Portfolio") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1314,7 +1373,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1346,7 +1405,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Sharpe Ratio optimized Equity Portfolio with 80% Longterm Debt") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1387,7 +1446,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Risk Parity Portfolio with Sharpe Ratio optimized Equity Part") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1421,7 +1480,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Sharpe Ratio optimized Equity Portfolio with 20% Longterm Debt") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1453,7 +1512,7 @@ server <- function(input, output, session) {
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
             Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size = 1) +
-          labs(x = "Year", y = "Portfoliodevelopement",
+          labs(x = "Year", y = "Portfolio Developement",
                title = "Sharpe Ratio optimized 100% Equity Portfolio") +
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
@@ -1512,8 +1571,8 @@ server <- function(input, output, session) {
     output$expectedValue <- renderValueBox({
       valueBox(
 
-        paste0(round((1 + (averagereturn(portfoliofinal) * input$inv_horizon)) *
-                       input$initial_wealth), "$"),
+        paste0(round(((1 + (averagereturn(portfoliofinal))) ^
+                        input$inv_horizon) * input$initial_wealth), "$"),
         paste0("Expected wealth after ", input$inv_horizon, " years" ),
         icon = icon("hand-holding-usd"),
         color = "blue"
@@ -1523,7 +1582,7 @@ server <- function(input, output, session) {
     output$yearlygain <- renderValueBox({
       valueBox(
         paste0(round((averagereturn(portfoliofinal) * 100)), "%"),
-        "Expected yearly gain",
+        "Expected yearly return",
         icon = icon("chart-line"),
         color = "green"
       )
@@ -1532,28 +1591,9 @@ server <- function(input, output, session) {
     output$maxdrawdown <- renderValueBox({
       valueBox(
         paste0(round((maxdrawdown(portfoliofinal) * 100)), "%"),
-        "Maxdrawdown",
-        icon = icon("greater-than"),
+        "Maximum Drawdown",
+        icon = icon("angle-double-down"),
         color = "red"
-      )
-    })
-
-    output$std <- renderValueBox({
-      valueBox(
-        paste0(round((yearlystd(portfoliofinal) * 100)), "%"),
-        "Standarddeviation",
-        icon = icon("square-root-alt"),
-        color = "yellow"
-      )
-    })
-
-
-    output$sharpe <- renderValueBox({
-      valueBox(
-        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)), 2),
-        "Sharpe Ratio",
-        icon = icon("hourglass-half"),
-        color = "orange"
       )
     })
 
@@ -1561,10 +1601,30 @@ server <- function(input, output, session) {
       valueBox(
         paste0(round(equityinvestment * 100, 2), "%"),
         "Invested in Equity",
-        icon = icon("hand-holding-usd"),
-        color = "purple"
+        icon = icon("balance-scale"),
+        color = "red"
+      )
+    })    
+    
+    output$sharpe <- renderValueBox({
+      valueBox(
+        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)), 2),
+        "Sharpe Ratio",
+        icon = icon("calculator"),
+        color = "green"
       )
     })
+
+    output$std <- renderValueBox({
+      valueBox(
+        paste0(round((yearlystd(portfoliofinal) * 100)), "%"),
+        "Standard Deviation",
+        icon = icon("square-root-alt"),
+        color = "blue"
+      )
+    })
+    
+
 
 
 ################################################################################
@@ -1769,10 +1829,6 @@ server <- function(input, output, session) {
             newtab <- switch(input$tabs, "tab3" = "tab4")
             updateTabItems(session, "tabs", newtab)
           }
-          
-          
-          
-          
         }
     )
 
