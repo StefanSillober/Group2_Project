@@ -68,14 +68,14 @@ body <- dashboardBody(
                        box(title = "Set Parameters",
                            width = 0.25,
                            uiOutput("initial_wealth"),
-                           hr(style="border-color: grey;"),
+                           hr(style = "border-color: grey;"),
                            uiOutput("rpref"),
                            "Estimate your risk on the scale from 1 to 7,
                            where 1 is the lowest tolerance towards risk,
                            and 7 is the highest",
                            hr(style="border-color: grey;"),
                            fluidRow(
-                             column(6,uiOutput("inv_horizon")),
+                             column(6, uiOutput("inv_horizon")),
                              column(6,
                                     sliderTextInput(
                                       inputId = "speed",
@@ -93,9 +93,9 @@ body <- dashboardBody(
                                     br(),
                                     h5(tags$b("Initialize Simulation:"),
                                        align = "left"),
-                                    column(4,uiOutput("resetbutton")),
-                                    column(4,uiOutput("startbutton")),
-                                    column(4,uiOutput("play"))
+                                    column(4, uiOutput("resetbutton")),
+                                    column(4, uiOutput("startbutton")),
+                                    column(4, uiOutput("play"))
                              )
                            ),
                            tags$p("Press the", tags$em("Play"),
@@ -131,7 +131,7 @@ body <- dashboardBody(
                        tabPanel(
                          title = tagList(shiny::icon("chart-bar"),
                                          "Histogram"),
-                         plotOutput('distPlot', height = "500")
+                         plotOutput("distPlot", height = "500")
                        ),
 
                        tabPanel(
@@ -173,8 +173,8 @@ body <- dashboardBody(
                          initial capital invested at a certain risk level.",
                          br(),
                          br(),
-                         "The boxes below this graph summerize some main features
-                         of your investment."
+                         "The boxes below this graph summerize
+                         some main features of your investment."
                        )
                      ),
 
@@ -238,7 +238,7 @@ body <- dashboardBody(
                          height = "550",
                          tabPanel(title = tagList(shiny::icon("chart-bar"),
                                                   "Histogram"),
-                                  plotOutput('distPlotFinish',
+                                  plotOutput("distPlotFinish",
                                              height = "500")),
                          tabPanel(title = tagList(shiny::icon("info"),
                                                   "Details"),
@@ -283,7 +283,7 @@ body <- dashboardBody(
                                   "Geographical Preferences"),
                   width = 8,
                   tabPanel(
-                    title = tagList(shiny::icon("globe-americas"),"Map"),
+                    title = tagList(shiny::icon("globe-americas"), "Map"),
                     withSpinner(leafletOutput("mymap", height = "500"))
                   ),
 
@@ -297,13 +297,12 @@ body <- dashboardBody(
                     region in the portfolio, it might be deselected.",
                     br(),
                     br(),
-                    "Please note: for diversification reasons it is
-                    highly recommended not to deselect too many
-                    countries. However, before going to the next tab,
-                    our algorithm will evaluate the potential
-                    diversification possible, with the current selection.
-                    If there is too less diversification potential, you
-                    will be asked to select more regions or sectors
+                    "Please note: for diversification reasons it is highly
+                    recommended not to deselect too many countries. However,
+                    before going to the next tab, our algorithm will evaluate
+                    the potential diversification possible, with the current
+                    selection. If there is too less diversification potential,
+                    you will be asked to select more regions or sectors
                     respectively.",
                     br(),
                     br(),
@@ -314,7 +313,8 @@ body <- dashboardBody(
 
                 ######## Inputs to let the user switch on and of industries
                 tabBox(
-                  title = tagList(shiny::icon("industry"), "Industry Preferences"),
+                  title = tagList(shiny::icon("industry"),
+                                  "Industry Preferences"),
                   width = 4,
                   id = "tabset1",
                   height = "550",
@@ -408,12 +408,12 @@ body <- dashboardBody(
                 h2("Portfolio Construction"), # tab item header
                 fluidRow(
                   plotOutput("ourPF"),
-                  radioButtons('format',
-                               'Document format',
-                               c('PDF','HTML', 'Word'),
+                  radioButtons("format",
+                               "Document format",
+                               c("PDF", "HTML", "Word"),
                                inline = TRUE),
 
-                  downloadButton('downloadReport'),
+                  downloadButton("downloadReport"),
                   ),
                 fluidRow( # Dynamic valueBoxes
                   valueBoxOutput("expectedValue"),
@@ -457,6 +457,7 @@ ui <- dashboardPage(header, sidebar, body,tags$head(
 
 
 
+
 server <- function(input, output, session) {
 
 ############################ Risk Preference ###################################
@@ -472,7 +473,7 @@ server <- function(input, output, session) {
     sim$data <- c()
     sim$terminal_wealth <- c()
     diffusion <- c(0.01, 0.02, 0.05, 0.1, 0.15, 0.25, 0.3)
-    drift <- c(0.001,0.005,0.015,0.02, 0.03, 0.06, 0.07)
+    drift <- c(0.001, 0.005, 0.015, 0.02, 0.03, 0.06, 0.07)
     draws <- 1000
     speed <- seq(1000, 100, length.out = 5)
 
@@ -496,7 +497,7 @@ server <- function(input, output, session) {
         ID <- "uselessID"
       }
 
-      sliderInput(inputId = ID,"Estimate your risk preference:",
+      sliderInput(inputId = ID, "Estimate your risk preference:",
                   value = input$rpref, min = 1, max = 7, step = 1)
 
     })
@@ -820,8 +821,7 @@ server <- function(input, output, session) {
           updateSliderInput(session, "rpref", value = input$rpref2)
           })
 
-
-
+        
 ############ Country and Industry Subsetting ###################################
 ################################################################################
 
@@ -848,150 +848,11 @@ server <- function(input, output, session) {
 
         makeReactiveBinding("data")
 
-####### show the subsetted data frame in the app ###############################
-        output$table <- renderTable({
-
-######### due to syntax of reactive datas, the subsetting has to happen within #
-######### as well as outside the reactive enviornment ##########################
-
-          data <- ovr[, -c(1, 47:50)]
-
-######### Subsetting by region - the user chooses the region(s) he or she ######
-######### does not want to invest in ###########################################
-           if (!("North America" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("US", names(data), value = TRUE))]
-          }
-
-          if (!("Europe" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("EU", names(data), value = TRUE))]
-          }
-
-          if (!("Asia" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("AS", names(data), value = TRUE))]
-          }
-
-          if (!("Africa" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("Africa", names(data), value = TRUE))]
-          }
-
-          if (!("Oceania" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("Australia", names(data),
-                                          value = TRUE))]
-          }
-
-          if (!("Latin America" %in% input$mymap_groups)) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("Latinamerica", names(data),
-                                          value = TRUE))]
-          }
-
-######### Subsetting by industry - the user chooses the indutries he or she ####
-######### does not want to invest in ###########################################
-
-      if (("North America" %in% input$mymap_groups) ||
-          ("Europe" %in% input$mymap_groups) ||
-          ("Asia" %in% input$mymap_groups)) {
-
-          if ("banks" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("banks", names(data), value = TRUE))]
-          }
-
-          if ("resources" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("resources", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("chemicals" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("chemicals", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("construction" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("construction", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("financials" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("financials", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("food" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("food", names(data), value = TRUE))]
-          }
-
-          if ("health" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("health", names(data), value = TRUE))]
-          }
-
-          if ("industrial" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("industrial", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("insurance" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("insurance", names(data),
-                                          value = TRUE))]
-          }
-
-          if ("energy" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("energy", names(data), value = TRUE))]
-          }
-
-          if ("personal" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("personal", names(data),
-                                          value = TRUE))]
-          }
-
-
-          if ("tech" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("tech", names(data), value = TRUE))]
-          }
-
-          if ("telecom" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("telecom", names(data),
-                                          value = TRUE))]
-          }
-
-
-          if ("utilities" %in% input$industry1) {
-            data <- data[ , -which(names(data) %in%
-                                     grep("utilities", names(data),
-                                          value = TRUE))]
-          }
-      }
-
-        data
-
-######### End of subsetting, where the data is used for the table ##############
-################################################################################
-          })
-
 
 ####### Actual subsetting, where the data is then used for the PF building #####
 ################################################################################
 
 ####### Get webscraped Data (the ovr file from the scrapping script) ###########
-
-        data <- ovr[, -c(1, 47:50)]
 
 ####### use the data frame in a reactive enviornment ###########################
 
@@ -1034,13 +895,6 @@ server <- function(input, output, session) {
                                      grep("Latinamerica", names(data),
                                           value = TRUE))]
           }
-
-          # if (!("Antarctica" %in% input$mymap_groups)) {
-          #   data <- data[ , -which(names(data) %in%
-          #                            grep("Antarctica", names(data),
-          #                                 value = TRUE))]
-          #   }
-
 
 ######### Subsetting by industry - the user chooses the indutries he or she ####
 ######### does not want to invest in ###########################################
@@ -1258,7 +1112,7 @@ server <- function(input, output, session) {
         }
 
 
-        finaldata <- cbind(finaldata,dataopt)
+        finaldata <- cbind(finaldata, dataopt)
       }
       return(finaldata)
       } else {
@@ -1267,8 +1121,6 @@ server <- function(input, output, session) {
       }
 ### End of Dataspliting function #################################
     }
-
-
 
 ### call the portfolios according to the user's input ##########################
 
@@ -1297,23 +1149,25 @@ server <- function(input, output, session) {
 
         portfoliofinal <<- indexpf(as.data.frame(shortbond))
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
         
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
                title = "Short Bond Portfolio") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                           "MSCI World Benchmark"="grey"))+
-          theme(legend.position=c(.9,.1))
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                           "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
           theme_minimal()
       }
 
@@ -1326,23 +1180,25 @@ server <- function(input, output, session) {
         portfoliofinal <<- indexpf(as.data.frame(longbond))
         equityinvestment <<- 0
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
         
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
                title = "Long Bond Portfolio") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
           theme_minimal()
       }
 
@@ -1357,28 +1213,30 @@ server <- function(input, output, session) {
           (input$rpref2 == 2 && input$inv_horizon > 5)) {
 
 ####### split the required input df into sub-df's to make them optimizable #####
-        finaldata <- datasplit(newData(),updateProgress)
+        finaldata <- datasplit(newData(), updateProgress)
         portfoliofinal <<- minvarpf(finaldata)
         equityinvestment <<- 0
 
 ####### include the performance plot in Shiny ##################################
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
 
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
                title = "Minimum Variance Portfolio") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
         theme_minimal()
 
         }
@@ -1387,7 +1245,7 @@ server <- function(input, output, session) {
 
       if (input$rpref2 == 1 && input$inv_horizon > 10) {
 
-        finaldata <- datasplit(newData(),updateProgress)
+        finaldata <- datasplit(newData(), updateProgress)
 
         finalpf <- optimpf(finaldata)
 
@@ -1395,22 +1253,25 @@ server <- function(input, output, session) {
         portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.2)
         
         
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
         portfolioplot <- cbind(portfolioplot, benchmark)
         
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
-               title = "Sharpe Ratio optimized Equity Portfolio with 80% Longterm Debt") +
+               title = "Sharpe Ratio optimized Equity
+               Portfolio with 80% Longterm Debt") +
           scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position = c(.9, .1))
           theme_minimal()
 
         equityinvestment <<- 0.2
@@ -1436,29 +1297,33 @@ server <- function(input, output, session) {
         portfoliofinal <<- as.data.frame(portfoliofinal[1])
 
         portfolioplot <- cbind(ovr$Date, portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
         
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
-               title = "Risk Parity Portfolio with Sharpe Ratio optimized Equity Part") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+               title = "Risk Parity Portfolio with
+               Sharpe Ratio optimized Equity Part") +
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
           theme_minimal()
 
       }
 
 ########################### equity + longbond overweight equity ################
       if ((input$rpref2 == 6 && input$inv_horizon <= 5) ||
-         (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
+         (input$rpref2 == 6 && input$inv_horizon > 5 &&
+          input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
 
         finaldata <- datasplit(newData(), updateProgress)
@@ -1469,28 +1334,32 @@ server <- function(input, output, session) {
         portfoliofinal <<- equityanddeptpf(finalpf, longbondindexed, 0.8)
         equityinvestment <<- 0.8
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
-        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date,
+                                             "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
         
-        plotfinal <- ggplot()+
+        plotfinal <- ggplot() +
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size =1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
-               title = "Sharpe Ratio optimized Equity Portfolio with 20% Longterm Debt") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+               title = "Sharpe Ratio optimized Equity
+               Portfolio with 20% Longterm Debt") +
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
           theme_minimal()
 
       }
 
-################################ Pure Equity? ##################################
+################################ Pure Equity² ##################################
       if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
           (input$rpref2 == 7 && input$inv_horizon <= 5) ||
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
@@ -1501,23 +1370,26 @@ server <- function(input, output, session) {
         portfoliofinal <<- optimpf(finaldata)
         equityinvestment <<- 1
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
-        names(portfolioplot) <- c("Date","Portfolio")
-        portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
-        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-        portfolioplot <- cbind(portfolioplot,benchmark)
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
+        names(portfolioplot) <- c("Date", "Portfolio")
+        portfolioplot$Date <- strptime(as.character(portfolioplot$Date),
+                                       "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date,
+                                             "%Y-%m-%d"))
+        portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
           geom_line(data = portfolioplot, aes(
             Date, Portfolio, group = 1, colour = "Your Portfolio"), size = 1) +
           geom_line(data = portfolioplot, aes(
-            Date, benchmark, group = 1, colour = "MSCI World Benchmark"), size = 1) +
+            Date, benchmark, group = 1,
+            colour = "MSCI World Benchmark"), size = 1) +
           labs(x = "Year", y = "Portfolio Developement",
                title = "Sharpe Ratio optimized 100% Equity Portfolio") +
-          scale_x_date(date_breaks = "2 years")+
-          scale_colour_manual("", values = c("Your Portfolio"="blue", 
-                                             "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+          scale_x_date(date_breaks = "2 years") +
+          scale_colour_manual("", values = c("Your Portfolio" = "blue", 
+                                             "MSCI World Benchmark" = "grey")) +
+          theme(legend.position=c(.9, .1))
           theme_minimal()
       }
       plotfinal
@@ -1529,7 +1401,7 @@ server <- function(input, output, session) {
 
       filename <- function() {
         paste("PF-Factsheet",
-              sep = '.',
+              sep = ".",
               switch(input$format,
                      PDF = "pdf",
                      HTML = "html",
@@ -1550,7 +1422,7 @@ server <- function(input, output, session) {
                   overwrite = TRUE)
 
 
-        out <- render('report.Rmd',
+        out <- render("report.Rmd",
                       switch(input$format,
                              PDF = pdf_document(),
                              HTML = html_document(),
@@ -1608,7 +1480,7 @@ server <- function(input, output, session) {
     
     output$sharpe <- renderValueBox({
       valueBox(
-        round((averagereturn(portfoliofinal)/yearlystd(portfoliofinal)), 2),
+        round((averagereturn(portfoliofinal) / yearlystd(portfoliofinal)), 2),
         "Sharpe Ratio",
         icon = icon("calculator"),
         color = "green"
@@ -1624,9 +1496,6 @@ server <- function(input, output, session) {
       )
     })
     
-
-
-
 ################################################################################
 
 
