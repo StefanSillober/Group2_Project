@@ -3,6 +3,8 @@ library(lubridate)
 library(tidyverse)
 library(rlist)
 library(jsonlite)
+library(rtsdata)
+
 
 use_python(Sys.which("python"))
 invest <- import("investpy")
@@ -124,7 +126,7 @@ data_scrap_ltd <- function(stocks,industries,country, scraping_function){
 }
 
 
-EU <- data_scrap(ind_stocks_eu, inds_eu, 'Germany', 20,
+EU <- data_scrap(ind_stocks_eu, inds_eu, 'Germany', 15,
                  invest$get_etf_historical_data) %>% reduce(inner_join, by = "Date")  
 US <- data_scrap_ltd(ind_stocks_us, inds_us, 'world',
                      invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")  
@@ -132,7 +134,42 @@ AS <- data_scrap_ltd(ind_stocks_asia, inds_asia, 'world',
                  invest$get_index_historical_data) %>% reduce(inner_join, by = "Date")
 
 # historical data load for US and Asia exceeding the limit of investing.com
-datastatic <- read.csv("staticdata/histstock.csv", sep=";")
+#datastatic <- read.csv("staticdata/histstock.csv", sep=";")
+
+Africa <- as.data.frame(ds.getSymbol.yahoo("EZA", from = "2006-12-08", to = Sys.Date())[,6])
+Australia <- as.data.frame(ds.getSymbol.yahoo("EWA", from = "2006-12-08", to = Sys.Date())[,6])
+Latinamerica <- as.data.frame(ds.getSymbol.yahoo("ILF", from = "2006-12-08", to = Sys.Date())[,6])
+Commodities <- as.data.frame(ds.getSymbol.yahoo("IAU", from = "2006-12-08", to = Sys.Date())[,6])
+LongBond <- as.data.frame(ds.getSymbol.yahoo("TLT", from = "2006-12-08", to = Sys.Date())[,6])
+ShortBond <- as.data.frame(ds.getSymbol.yahoo("TIP", from = "2006-12-08", to = Sys.Date())[,6])
+
+
+indices = c("Africa", "Australia", "Latinamerica", "Commodities", "LongBond", "ShortBond")
+dflist <- list(Africa, Australia, Latinamerica, Commodities, LongBond, ShortBond)
+
+
+for (c in (1:(length(dflist)-1))) {
+  
+  if(c == 1){
+    datayahoo <- dflist[1]
+    datayahoo <- merge.data.frame(datayahoo, dflist[c+1], by = "row.names")
+    rownames(datayahoo) <- datayahoo[,1]
+    datayahoo <- datayahoo[,-1]
+  }
+  else{
+  datayahoo <- merge.data.frame(datayahoo, dflist[c+1], by = "row.names")
+  rownames(datayahoo) <- datayahoo[,1]
+  datayahoo <- datayahoo[,-1]
+  }
+}
+
+colnames(datayahoo) <- indices
+datayahoo$Date <- row.names(datayahoo)
+datayahoo$Date <- format(as.Date(datayahoo$Date), "%d/%m/%Y")
+
+
+
+
 as_static <- read.csv("staticdata/as.csv", sep = ';')
 us_static <- read.csv("staticdata/us.csv", sep = ";")
 us_static[-c(1)] <- lapply( us_static[-c(1)], function(x) as.numeric(x))
@@ -143,7 +180,7 @@ AS_final <- bind_rows(AS, as_static)
 
 # Creating final dataframe
 ovr <- dplyr::inner_join(EU,US_final, by = "Date") %>%
-  inner_join(.,AS_final, by = "Date")%>% inner_join(.,datastatic, by = "Date")
+  inner_join(.,AS_final, by = "Date") %>% inner_join(.,datayahoo, by = "Date")
 
 
 
