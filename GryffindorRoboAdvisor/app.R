@@ -1343,7 +1343,7 @@ server <- function(input, output, session) {
           scale_x_date(date_breaks = "2 years")+
           scale_colour_manual("", values = c("Your Portfolio"="blue", 
                                              "MSCI World Benchmark"="grey")) +
-          theme(legend.position=c(.9,.1))
+          theme(legend.position=c(.9, .1))
           theme_minimal()
       }
 
@@ -1399,6 +1399,7 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
+        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
         portfolioplot <- cbind(portfolioplot, benchmark)
         
         plotfinal <- ggplot()+
