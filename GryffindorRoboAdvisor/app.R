@@ -745,8 +745,8 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
 
-        source("robodata.R")
-        #load("staticdata/datas.RData")
+        #source("robodata.R")
+        load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
@@ -757,7 +757,8 @@ server <- function(input, output, session) {
         commodities <- ovr[, 56]
         longbond <- ovr[, 57]
         shortbond <- ovr[, 58]
-        data <- ovr[, -c(1, 56:58)]
+        benchmark <- ovr[, 59]
+        data <- ovr[, -c(1, 56:59)]
 
 ####### in order to make the data frame subsettable, it must be in an reactive #
 ####### enviornment. ###########################################################
@@ -770,7 +771,7 @@ server <- function(input, output, session) {
 ######### due to syntax of reactive datas, the subsetting has to happen within #
 ######### as well as outside the reactive enviornment ##########################
 
-          data <- ovr[, -c(1, 56:58)]
+          data <- ovr[, -c(1, 56:59)]
 
 ######### Subsetting by region - the user chooses the region(s) he or she ######
 ######### does not want to invest in ###########################################
@@ -922,14 +923,14 @@ server <- function(input, output, session) {
 
 ####### Get webscraped Data (the ovr file from the scrapping script) ###########
 
-        data <- ovr[, -c(1, 56:58)]
+        data <- ovr[, -c(1, 56:59)]
 
 ####### use the data frame in a reactive enviornment ###########################
 
         newData <- reactive({
 ######### Again, the data has to be used within and outside the reactive #######
 ######### enviornment. #########################################################
-          data <- ovr[, -c(1, 56:58)]
+          data <- ovr[, -c(1, 56:59)]
 
 ######### Subsetting by region - the user selects the region he or she does not
 ######### want to be invested in ###############################################
@@ -1578,11 +1579,13 @@ server <- function(input, output, session) {
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot, benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1, col = "Your Portfolio"),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1, col = "MSCI World Benchmark"),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Short Maturity Bonds Only") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
       }
@@ -1600,11 +1603,13 @@ server <- function(input, output, session) {
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot, benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Long Maturity Bonds Only") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
       }
@@ -1629,9 +1634,11 @@ server <- function(input, output, session) {
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
+        portfolioplot <- cbind(portfolioplot, benchmark)
 
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
                title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
@@ -1654,12 +1661,13 @@ server <- function(input, output, session) {
         portfolioplot <- cbind(ovr$Date,portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
-        portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot, benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Equity and Bond Portfolio with overweight in bonds") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
 
@@ -1674,7 +1682,7 @@ server <- function(input, output, session) {
          (input$rpref2 == 3 && input$inv_horizon > 10) ||
          (input$rpref2 == 4 && input$inv_horizon > 10)) {
 
-        finaldata <- datasplit(newData(),updateProgress)
+        finaldata <- datasplit(newData(), updateProgress)
 
         finalpf <- optimpf(finaldata)
 
@@ -1685,15 +1693,17 @@ server <- function(input, output, session) {
         equityinvestment <<- as.numeric(portfoliofinal[2])
         portfoliofinal <<- as.data.frame(portfoliofinal[1])
 
-        portfolioplot <- cbind(ovr$Date,portfoliofinal)
+        portfolioplot <- cbind(ovr$Date, portfoliofinal)
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot, benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Risk Parity Portfolio") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
 
@@ -1704,7 +1714,7 @@ server <- function(input, output, session) {
          (input$rpref2 == 6 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
          (input$rpref2 == 5 && input$inv_horizon > 10)) {
 
-        finaldata <- datasplit(newData(),updateProgress)
+        finaldata <- datasplit(newData(), updateProgress)
 
         finalpf <- optimpf(finaldata)
 
@@ -1716,12 +1726,13 @@ server <- function(input, output, session) {
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot, benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Equity and Longtherm Maturity Bonds
-               Portfolio with overwight in equity") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
 
@@ -1742,11 +1753,13 @@ server <- function(input, output, session) {
         names(portfolioplot) <- c("Date","Portfolio")
         portfolioplot$Date <- strptime(as.character(portfolioplot$Date), "%d/%m/%Y")
         portfolioplot$Date <- as.Date(format(portfolioplot$Date, "%Y-%m-%d"))
-
-        plotfinal <- ggplot(portfolioplot, aes(Date, Portfolio, group = 1)) +
-          geom_line(color = "#00AFBB", size = 1, alpha = 0.6) +
+        portfolioplot <- cbind(portfolioplot,benchmark)
+        
+        plotfinal <- ggplot()+
+          geom_line(data = portfolioplot, aes(Date, Portfolio, group = 1),color = "#00AFBB", size = 1, alpha = 0.6) +
+          geom_line(data = portfolioplot, aes(Date, benchmark, group = 1),color = "#373737", size = 1, alpha = 0.6) +
           labs(x = "Year", y = "Your Portfolio",
-               title = "Pure Sharpe Ratio optimized Equity Portfolio") +
+               title = "Minimum Variance Portfolio") +
           scale_x_date(date_breaks = "2 years") +
           theme_minimal()
       }
