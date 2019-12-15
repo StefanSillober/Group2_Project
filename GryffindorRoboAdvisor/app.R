@@ -1,3 +1,9 @@
+### Gryffindor Robo Advisor ###
+#   Screencast video: https://stefansillober.github.io/Group2_Project/
+#   You can also run our APP online under:
+#   https://stefan-sillober.shinyapps.io/gryffindorroboadvisor/
+
+
 library(shiny)
 library(shinydashboard)
 library(leaflet)
@@ -832,8 +838,12 @@ server <- function(input, output, session) {
 ######## To make the code better readable, the webscrapping process is placed #
 ######## in a seperate file ###################################################
 
-        #source("robodata.R")
-        load("staticdata/datas.RData")
+######## Source will pull the latest data, but will take some time at the
+######## beginning of the app. Load will load a static dataframe, which contains
+######## data untill 12.12.2019.
+        
+        source("robodata.R")
+        #load("staticdata/datas.RData")
 
 ####### The output file of the webscraping script is called "OVR" and contains #
 ####### all available information in one data frame. This is split up into the #
