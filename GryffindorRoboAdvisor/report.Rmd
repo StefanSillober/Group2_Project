@@ -22,7 +22,9 @@ if (is.null(input$industry1)) {
         cat("In terms of industries, you did not specify any restrictions, 
             i.e. all industries are used in the portfolio construction.")
     } else {
-        cat("The industries that have been chosen to exclude are:", input$industry1, sep = ", ")
+        cat("The industries that have been chosen to exclude are: ")
+        cat(input$industry1, sep = ", ")
+        cat(".")
 }
 ```
 

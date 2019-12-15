@@ -1706,13 +1706,13 @@ server <- function(input, output, session) {
         }
     )
 
-    observeEvent(
-        input$button6, {
-          shinyjs::js$refresh()
-            # newtab <- switch(input$tabs, "tab4" = "tab3")
-            # updateTabItems(session, "tabs", newtab)
-        }
-    )
+  observeEvent(
+      input$button6, {
+        shinyjs::js$refresh()
+          # newtab <- switch(input$tabs, "tab4" = "tab3")
+          # updateTabItems(session, "tabs", newtab)
+      }
+  )
 
 # end of server function #######################################################
 ################################################################################
