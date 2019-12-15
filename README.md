@@ -15,4 +15,4 @@ The Gryffindor Robo Advisor will provide you with a portfolio that matches your 
 
 <h2>Complete Walkthrought of the Application</h2>
 
-<iframe width="560" height="315" src="https://youtu.be/J2cpZW4lpG4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/J2cpZW4lpG4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
