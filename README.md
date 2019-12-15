@@ -1,6 +1,6 @@
 <h2>Customized Portfolios for everybody</h2>
 
-<a href="https://stefan-sillober.shinyapps.io/gryffindorroboadvisor/" class="btn">Run Robo Advisor Online to find your perfect Portfolio</a>
+<a href="https://stefan-sillober.shinyapps.io/gryffindorroboadvisor/" class="button">Run Robo Advisor Online to find your perfect Portfolio</a>
 
 <h3>Features</h3>
 
