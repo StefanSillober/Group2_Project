@@ -22,6 +22,8 @@ library(shinycssloaders)
 library(ggplot2)
 #install_github("MatthiasSpeicher/gryffindorrobo")
 library(gryffindorrobo)
+library(shinyjs)
+
 
 
 
@@ -58,6 +60,8 @@ body <- dashboardBody(
     #     theme = "purple_gradient"
     #     #theme = "grey_dark"
     # ),
+  shinyjs::useShinyjs(),
+  shinyjs::extendShinyjs(text = "shinyjs.refresh = function() { location.reload(); }"),
 
         tabItems(
 
@@ -426,7 +430,7 @@ body <- dashboardBody(
 
                 actionBttn(
                   inputId = "button6",
-                  label = "Back",
+                  label = "Restart",
                   style = "unite",
                   color = "danger"
                 )
@@ -1126,7 +1130,6 @@ server <- function(input, output, session) {
 
 ################################################################################
 
-
     output$ourPF <- renderPlot({
 
       # Create the Progress object
@@ -1361,7 +1364,7 @@ server <- function(input, output, session) {
 
       }
 
-################################ Pure Equity² ##################################
+################################ Pure Equity? ##################################
       if ((input$rpref2 == 6 && input$inv_horizon > 10) ||
           (input$rpref2 == 7 && input$inv_horizon <= 5) ||
           (input$rpref2 == 7 && input$inv_horizon > 5 && input$inv_horizon <= 10) ||
@@ -1396,6 +1399,8 @@ server <- function(input, output, session) {
       }
       plotfinal
     })
+        
+
 
 ### PDF Download Handler - option for the user to downloas her personal report #
 
@@ -1441,10 +1446,8 @@ server <- function(input, output, session) {
 ################################################################################
 
 ### Boxes for Final Output Page ################################################
-
     output$expectedValue <- renderValueBox({
       valueBox(
-
         paste0(round(((1 + (averagereturn(portfoliofinal))) ^
                         input$inv_horizon) * input$initial_wealth), "$"),
         paste0("Expected wealth after ", input$inv_horizon, " years" ),
@@ -1705,8 +1708,9 @@ server <- function(input, output, session) {
 
     observeEvent(
         input$button6, {
-            newtab <- switch(input$tabs, "tab4" = "tab3")
-            updateTabItems(session, "tabs", newtab)
+          shinyjs::js$refresh()
+            # newtab <- switch(input$tabs, "tab4" = "tab3")
+            # updateTabItems(session, "tabs", newtab)
         }
     )
 
@@ -1716,5 +1720,4 @@ server <- function(input, output, session) {
 }
 
 runApp(shinyApp(ui,server),launch.browser = TRUE)
-#runApp(shinyApp(ui,server),launch.browser = TRUE, display.mode = "showcase")
-#shinyApp(ui,server)
+
