@@ -354,7 +354,7 @@ body <- dashboardBody(
                       options = list(
                         selected_header = "I don't want to invest in:",
                         non_selected_header = "Industries",
-                        limit = 13 ####the user should't deselect all industries
+                        limit = 11 ####the user should't deselect all industries
                       )
                     )
                   ),
@@ -1688,7 +1688,7 @@ server <- function(input, output, session) {
             updateTabItems(session, "tabs", newtab)
         }
     )
-
+    
     observeEvent( # include error message, when all regions are deselected #####
         input$button5, {
           if ("Antarctica" %in% input$mymap_groups) {
@@ -1699,7 +1699,7 @@ server <- function(input, output, session) {
                                 width = "450px",
                                 height = "500px")
             )
-          } else if (length(input$mymap_groups) < 3 && 
+          } else if (length(input$mymap_groups) < 3 &&
               (!("North America" %in% input$mymap_groups) &&
               !("Europe" %in% input$mymap_groups) &&
               !("Asia" %in% input$mymap_groups))) {
